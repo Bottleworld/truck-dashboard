@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 type Session = {
   id: string;
@@ -33,7 +33,6 @@ export default function HistoryPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error(error);
       alert("Error loading history");
       setLoading(false);
       return;
@@ -50,13 +49,20 @@ export default function HistoryPage() {
     const password = prompt("Enter admin password to delete:");
     if (!password) return;
 
-    if (password !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      alert("Wrong password");
+    const res = await fetch("/api/admin/delete-report", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ sessionId, password }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      alert(result.error || "Error deleting report");
       return;
     }
-
-    await supabase.from("bag_counts").delete().eq("session_id", sessionId);
-    await supabase.from("truck_sessions").delete().eq("id", sessionId);
 
     alert("Report deleted successfully!");
     loadHistory();
@@ -73,7 +79,12 @@ export default function HistoryPage() {
       Expires: new Date(session.expires_at).toLocaleDateString(),
     }));
 
-    const headers = Object.keys(rows[0] || {});
+    if (rows.length === 0) {
+      alert("No data to export");
+      return;
+    }
+
+    const headers = Object.keys(rows[0]);
     const csv = [
       headers.join(","),
       ...rows.map((row) =>
@@ -154,15 +165,12 @@ export default function HistoryPage() {
                   <h2 className="text-2xl font-bold">
                     Truck #{session.truck_id}
                   </h2>
-
                   <p className="text-gray-600">
                     Manager: {session.manager_name}
                   </p>
-
                   <p className="text-gray-600">
                     Arrival: {session.arrival_time}
                   </p>
-
                   <p className="text-gray-600">
                     Date: {new Date(session.created_at).toLocaleString()}
                   </p>

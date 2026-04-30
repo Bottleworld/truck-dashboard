@@ -1,119 +1,117 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import Link from "next/link";
 
-type Truck = {
-  id: string;
-  truck_number: number;
-  truck_name: string;
-  plate_number: string;
-  vin: string;
-};
+export default function TruckInfoPage() {
+  const params = useParams();
+  const id = Number(params.id);
 
-export default function AdminTrucksPage() {
-  const router = useRouter();
-  const [trucks, setTrucks] = useState<Truck[]>([]);
+  const [truck, setTruck] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const isAdmin = localStorage.getItem("admin");
-    if (!isAdmin) router.push("/admin");
-
-    loadTrucks();
+    loadTruck();
   }, []);
 
-  async function loadTrucks() {
+  async function loadTruck() {
     const { data, error } = await supabase
       .from("trucks")
       .select("*")
-      .order("truck_number", { ascending: true });
+      .eq("truck_number", id)
+      .maybeSingle();
 
     if (error) {
       console.error(error);
-      alert("Error loading trucks");
+      setLoading(false);
       return;
     }
 
-    setTrucks(data || []);
+    setTruck(data);
+    setLoading(false);
   }
 
-  async function deleteTruck(id: string, name: string) {
-    const confirmDelete = confirm(`Are you sure you want to delete ${name}?`);
+  function getColor(dateStr: string) {
+    if (!dateStr) return "text-gray-500";
 
-    if (!confirmDelete) return;
+    const today = new Date();
+    const date = new Date(dateStr);
 
-    const { error } = await supabase.from("trucks").delete().eq("id", id);
+    const diff = Math.ceil(
+      (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-    if (error) {
-      console.error(error);
-      alert("Error deleting truck");
-      return;
-    }
+    if (diff <= 7) return "text-red-600 font-bold";
+    if (diff <= 30) return "text-yellow-600 font-bold";
+    return "text-green-600 font-bold";
+  }
 
-    alert("Truck deleted successfully!");
-    loadTrucks();
+  if (loading) {
+    return <div className="p-10 text-xl">Loading...</div>;
+  }
+
+  if (!truck) {
+    return (
+      <div className="p-10">
+        <Link href="/" className="text-blue-600 text-lg">
+          ← Back
+        </Link>
+
+        <h1 className="text-3xl font-bold mt-6">Truck info not found</h1>
+        <p className="text-gray-600 mt-2">
+          Admin paneldan Truck #{id} information qo‘shing.
+        </p>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
-      <div className="mb-6 flex justify-between items-center">
-        <Link href="/admin/dashboard" className="text-blue-600 text-lg">
-          ← Back to Admin
-        </Link>
+      <Link href="/" className="text-blue-600 text-lg">
+        ← Back
+      </Link>
 
-        <Link href="/" className="text-blue-600 text-lg">
-          View Main Dashboard
-        </Link>
-      </div>
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-3xl mx-auto mt-6">
+        <h1 className="text-4xl font-bold mb-6">🚚 {truck.truck_name}</h1>
 
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold">🚚 Manage Trucks</h1>
+        <div className="space-y-4 text-xl">
+          <p>
+            <b>Truck Number:</b> {truck.truck_number}
+          </p>
 
-          <Link
-            href="/admin/trucks/new"
-            className="bg-green-600 text-white px-6 py-3 rounded-xl text-lg"
-          >
-            + Add New Truck
-          </Link>
+          <p>
+            <b>Plate:</b> {truck.plate_number || "Not added"}
+          </p>
+
+          <p>
+            <b>VIN:</b> {truck.vin || "Not added"}
+          </p>
+
+          <p>
+            <b>Insurance:</b> {truck.insurance_number || "Not added"}
+          </p>
+
+          <p className={getColor(truck.insurance_expiration)}>
+            <b>Insurance Exp:</b>{" "}
+            {truck.insurance_expiration || "Not added"}
+          </p>
+
+          <p className={getColor(truck.registration_expiration)}>
+            <b>Registration Exp:</b>{" "}
+            {truck.registration_expiration || "Not added"}
+          </p>
+
+          <p className={getColor(truck.inspection_expiration)}>
+            <b>Inspection Exp:</b>{" "}
+            {truck.inspection_expiration || "Not added"}
+          </p>
+
+          <p>
+            <b>Notes:</b> {truck.notes || "No notes"}
+          </p>
         </div>
-
-        {trucks.length === 0 ? (
-          <p className="text-xl text-gray-500">No trucks found.</p>
-        ) : (
-          <div className="space-y-4">
-            {trucks.map((truck) => (
-              <div
-                key={truck.id}
-                className="border rounded-xl p-5 flex justify-between items-center"
-              >
-                <div>
-                  <h2 className="text-2xl font-bold">{truck.truck_name}</h2>
-                  <p className="text-gray-600">Plate: {truck.plate_number}</p>
-                  <p className="text-gray-600">VIN: {truck.vin}</p>
-                </div>
-
-                <div className="flex gap-3">
-                  <Link
-                    href={`/admin/trucks/${truck.id}/edit`}
-                    className="bg-black text-white px-6 py-3 rounded-xl"
-                  >
-                    Edit
-                  </Link>
-
-                  <button
-                    onClick={() => deleteTruck(truck.id, truck.truck_name)}
-                    className="bg-red-600 text-white px-6 py-3 rounded-xl"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
