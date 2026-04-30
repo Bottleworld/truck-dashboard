@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 type Truck = {
@@ -11,21 +10,12 @@ type Truck = {
   truck_name: string;
   plate_number: string;
   vin: string;
-  insurance_number: string;
-  insurance_expiration: string;
-  registration_expiration: string;
-  inspection_expiration: string;
-  notes: string;
 };
 
 export default function AdminTrucksPage() {
-  const router = useRouter();
   const [trucks, setTrucks] = useState<Truck[]>([]);
 
   useEffect(() => {
-    const isAdmin = localStorage.getItem("admin");
-    if (!isAdmin) router.push("/admin");
-
     loadTrucks();
   }, []);
 
@@ -36,12 +26,37 @@ export default function AdminTrucksPage() {
       .order("truck_number", { ascending: true });
 
     if (error) {
-      console.error(error);
       alert("Error loading trucks");
       return;
     }
 
     setTrucks(data || []);
+  }
+
+  async function deleteTruck(id: string, name: string) {
+    const confirmDelete = confirm(`Delete ${name}?`);
+    if (!confirmDelete) return;
+
+    const password = prompt("Enter admin password:");
+    if (!password) return;
+
+    const res = await fetch("/api/admin/delete-truck", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password, id }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      alert(result.error || "Error deleting truck");
+      return;
+    }
+
+    alert("Truck deleted successfully!");
+    loadTrucks();
   }
 
   return (
@@ -60,10 +75,7 @@ export default function AdminTrucksPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">🚚 Manage Trucks</h1>
 
-          <Link
-            href="/admin/trucks/new"
-            className="bg-green-600 text-white px-6 py-3 rounded-xl text-lg"
-          >
+          <Link href="/admin/trucks/new" className="bg-green-600 text-white px-6 py-3 rounded-xl text-lg">
             + Add New Truck
           </Link>
         </div>
@@ -73,22 +85,22 @@ export default function AdminTrucksPage() {
         ) : (
           <div className="space-y-4">
             {trucks.map((truck) => (
-              <div
-                key={truck.id}
-                className="border rounded-xl p-5 flex justify-between items-center"
-              >
+              <div key={truck.id} className="border rounded-xl p-5 flex justify-between items-center">
                 <div>
                   <h2 className="text-2xl font-bold">{truck.truck_name}</h2>
                   <p className="text-gray-600">Plate: {truck.plate_number}</p>
                   <p className="text-gray-600">VIN: {truck.vin}</p>
                 </div>
 
-                <Link
-                  href={`/admin/trucks/${truck.id}/edit`}
-                  className="bg-black text-white px-6 py-3 rounded-xl"
-                >
-                  Edit
-                </Link>
+                <div className="flex gap-3">
+                  <Link href={`/admin/trucks/${truck.id}/edit`} className="bg-black text-white px-6 py-3 rounded-xl">
+                    Edit
+                  </Link>
+
+                  <button onClick={() => deleteTruck(truck.id, truck.truck_name)} className="bg-red-600 text-white px-6 py-3 rounded-xl">
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
-export default function TruckInfoPage() {
+export default function EditTruckPage() {
   const params = useParams();
-  const id = Number(params.id);
+  const router = useRouter();
+  const id = params.id as string;
 
   const [truck, setTruck] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadTruck();
@@ -20,97 +20,76 @@ export default function TruckInfoPage() {
     const { data, error } = await supabase
       .from("trucks")
       .select("*")
-      .eq("truck_number", id)
-      .maybeSingle();
+      .eq("id", id)
+      .single();
 
     if (error) {
-      console.error(error);
-      setLoading(false);
+      alert("Error loading truck");
       return;
     }
 
     setTruck(data);
-    setLoading(false);
   }
 
-  function getColor(dateStr: string) {
-    if (!dateStr) return "text-gray-500";
-
-    const today = new Date();
-    const date = new Date(dateStr);
-
-    const diff = Math.ceil(
-      (date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (diff <= 7) return "text-red-600 font-bold";
-    if (diff <= 30) return "text-yellow-600 font-bold";
-    return "text-green-600 font-bold";
+  function updateField(field: string, value: string) {
+    setTruck({ ...truck, [field]: value });
   }
 
-  if (loading) {
-    return <div className="p-10 text-xl">Loading...</div>;
+  async function saveTruck() {
+    const password = prompt("Enter admin password:");
+    if (!password) return;
+
+    const res = await fetch("/api/admin/update-truck", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password, id, truck }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      alert(result.error || "Error saving truck");
+      return;
+    }
+
+    alert("Truck updated successfully!");
+    router.push("/admin/trucks");
   }
 
-  if (!truck) {
-    return (
-      <div className="p-10">
-        <Link href="/" className="text-blue-600 text-lg">
-          ← Back
-        </Link>
-
-        <h1 className="text-3xl font-bold mt-6">Truck info not found</h1>
-        <p className="text-gray-600 mt-2">
-          Admin paneldan Truck #{id} information qo‘shing.
-        </p>
-      </div>
-    );
-  }
+  if (!truck) return <div className="p-10 text-xl">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
-      <Link href="/" className="text-blue-600 text-lg">
-        ← Back
+      <Link href="/admin/trucks" className="text-blue-600 text-lg">
+        ← Back to Trucks
       </Link>
 
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-3xl mx-auto mt-6">
-        <h1 className="text-4xl font-bold mb-6">🚚 {truck.truck_name}</h1>
+        <h1 className="text-4xl font-bold mb-8">Edit {truck.truck_name}</h1>
 
-        <div className="space-y-4 text-xl">
-          <p>
-            <b>Truck Number:</b> {truck.truck_number}
-          </p>
+        <div className="space-y-5">
+          <input type="number" value={truck.truck_number || ""} onChange={(e) => updateField("truck_number", e.target.value)} placeholder="Truck Number" className="w-full border p-4 rounded-xl text-xl" />
+          <input type="text" value={truck.truck_name || ""} onChange={(e) => updateField("truck_name", e.target.value)} placeholder="Truck Name" className="w-full border p-4 rounded-xl text-xl" />
+          <input type="text" value={truck.plate_number || ""} onChange={(e) => updateField("plate_number", e.target.value)} placeholder="Plate Number" className="w-full border p-4 rounded-xl text-xl" />
+          <input type="text" value={truck.vin || ""} onChange={(e) => updateField("vin", e.target.value)} placeholder="VIN" className="w-full border p-4 rounded-xl text-xl" />
+          <input type="text" value={truck.insurance_number || ""} onChange={(e) => updateField("insurance_number", e.target.value)} placeholder="Insurance Number" className="w-full border p-4 rounded-xl text-xl" />
 
-          <p>
-            <b>Plate:</b> {truck.plate_number || "Not added"}
-          </p>
+          <label className="block text-lg font-medium">Insurance Expiration</label>
+          <input type="date" value={truck.insurance_expiration || ""} onChange={(e) => updateField("insurance_expiration", e.target.value)} className="w-full border p-4 rounded-xl text-xl" />
 
-          <p>
-            <b>VIN:</b> {truck.vin || "Not added"}
-          </p>
+          <label className="block text-lg font-medium">Registration Expiration</label>
+          <input type="date" value={truck.registration_expiration || ""} onChange={(e) => updateField("registration_expiration", e.target.value)} className="w-full border p-4 rounded-xl text-xl" />
 
-          <p>
-            <b>Insurance:</b> {truck.insurance_number || "Not added"}
-          </p>
+          <label className="block text-lg font-medium">Inspection Expiration</label>
+          <input type="date" value={truck.inspection_expiration || ""} onChange={(e) => updateField("inspection_expiration", e.target.value)} className="w-full border p-4 rounded-xl text-xl" />
 
-          <p className={getColor(truck.insurance_expiration)}>
-            <b>Insurance Exp:</b>{" "}
-            {truck.insurance_expiration || "Not added"}
-          </p>
+          <textarea value={truck.notes || ""} onChange={(e) => updateField("notes", e.target.value)} placeholder="Notes" className="w-full border p-4 rounded-xl text-xl h-32" />
 
-          <p className={getColor(truck.registration_expiration)}>
-            <b>Registration Exp:</b>{" "}
-            {truck.registration_expiration || "Not added"}
-          </p>
-
-          <p className={getColor(truck.inspection_expiration)}>
-            <b>Inspection Exp:</b>{" "}
-            {truck.inspection_expiration || "Not added"}
-          </p>
-
-          <p>
-            <b>Notes:</b> {truck.notes || "No notes"}
-          </p>
+          <button onClick={saveTruck} className="w-full bg-black text-white p-5 rounded-xl text-xl">
+            Save Changes
+          </button>
         </div>
       </div>
     </div>
