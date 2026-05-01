@@ -1,18 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function AdminDashboard() {
+export default function AdminDashboardPage() {
   const router = useRouter();
-
-  useEffect(() => {
-    const isAdmin = localStorage.getItem("admin");
-
-    if (!isAdmin) {
-      router.push("/admin");
-    }
-  }, []);
 
   function logout() {
     localStorage.removeItem("admin");
@@ -20,23 +12,32 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-10">
-      <h1 className="text-3xl font-bold mb-6">🛠 Admin Panel</h1>
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="bg-white rounded-3xl shadow-lg p-8 max-w-5xl mx-auto">
+        <h1 className="text-4xl font-bold mb-6">🛠 Admin Panel</h1>
 
-      <button
-        onClick={logout}
-        className="bg-red-500 text-white px-4 py-2 rounded"
-      >
-        Logout
-      </button>
-
-      <div className="mt-6 space-y-4">
-        <a
-          href="/admin/trucks"
-          className="block bg-blue-600 text-white p-4 rounded"
+        <button
+          onClick={logout}
+          className="bg-red-600 text-white px-6 py-3 rounded-xl mb-8"
         >
-          🚚 Manage Trucks
-        </a>
+          Logout
+        </button>
+
+        <div className="space-y-4">
+          <Link
+            href="/admin/trucks"
+            className="block bg-blue-600 text-white p-5 rounded-xl text-xl font-bold"
+          >
+            🚚 Manage Trucks
+          </Link>
+
+          <Link
+            href="/admin/analytics"
+            className="block bg-purple-600 text-white p-5 rounded-xl text-xl font-bold"
+          >
+            📊 Analytics
+          </Link>
+        </div>
       </div>
     </div>
   );

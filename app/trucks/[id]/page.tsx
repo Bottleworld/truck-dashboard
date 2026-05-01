@@ -37,6 +37,10 @@ export default function TruckPage() {
   }
 
   function nextBag(index: number) {
+    if (navigator.vibrate) {
+      navigator.vibrate(35);
+    }
+
     if (index === bags.length - 1) {
       addBagAndFocus();
     } else {
@@ -46,7 +50,8 @@ export default function TruckPage() {
 
   function removeBag(index: number) {
     if (bags.length === 1) return;
-    setBags(bags.filter((_, i) => i !== index));
+
+    setBags((prev) => prev.filter((_, i) => i !== index));
 
     setTimeout(() => {
       bagRefs.current[Math.max(0, index - 1)]?.focus();
@@ -111,21 +116,23 @@ export default function TruckPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-3 sm:p-6 lg:p-8">
-      <div className="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
         <Link href="/" className="text-blue-600 text-base sm:text-lg">
           ← Back
         </Link>
 
-        <div className="flex flex-col sm:flex-row justify-between gap-4 sm:items-start mt-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between gap-4 sm:items-start mt-4 mb-8">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold">Truck #{id}</h1>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+              Truck #{id}
+            </h1>
             <p className="text-gray-500 mt-2 text-base sm:text-lg">
               Bottle Receiving Report
             </p>
           </div>
 
           <div className="sm:text-right">
-            <p className="text-gray-500">Date</p>
+            <p className="text-gray-500 text-base sm:text-lg">Date</p>
             <p className="text-2xl sm:text-3xl font-bold">{today}</p>
           </div>
         </div>
@@ -136,8 +143,8 @@ export default function TruckPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-          <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+          <div className="min-w-0">
             <label className="block mb-2 text-lg font-semibold">
               Arrival Time
             </label>
@@ -146,11 +153,11 @@ export default function TruckPage() {
               value={arrivalTime}
               disabled={saved}
               onChange={(e) => setArrivalTime(e.target.value)}
-              className="w-full border p-4 rounded-xl text-xl"
+              className="w-full min-w-0 border p-4 rounded-xl text-xl sm:text-2xl"
             />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label className="block mb-2 text-lg font-semibold">
               Manager Name
             </label>
@@ -160,20 +167,20 @@ export default function TruckPage() {
               disabled={saved}
               onChange={(e) => setManagerName(e.target.value)}
               placeholder="Manager Name"
-              className="w-full border p-4 rounded-xl text-xl"
+              className="w-full min-w-0 border p-4 rounded-xl text-xl sm:text-2xl"
             />
           </div>
         </div>
 
-        <h2 className="text-3xl sm:text-4xl font-bold mb-4">Bag Counts</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold mb-5">Bag Counts</h2>
 
         <div className="space-y-4 mb-8">
           {bags.map((bag, index) => (
             <div
               key={index}
-              className="grid grid-cols-[70px_1fr] sm:grid-cols-[100px_1fr_auto_auto] gap-3 sm:gap-4 items-center"
+              className="grid grid-cols-[70px_1fr] md:grid-cols-[120px_1fr_auto_auto] gap-3 sm:gap-4 items-center"
             >
-              <label className="text-xl sm:text-2xl">
+              <label className="text-xl sm:text-2xl leading-tight">
                 Bag #{index + 1}
               </label>
 
@@ -188,6 +195,12 @@ export default function TruckPage() {
                 value={bag || ""}
                 disabled={saved}
                 onChange={(e) => updateBag(index, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    nextBag(index);
+                  }
+                }}
                 className="min-w-0 border p-4 rounded-xl text-2xl sm:text-3xl"
               />
 
@@ -197,7 +210,7 @@ export default function TruckPage() {
                 onTouchStart={(e) => e.preventDefault()}
                 onClick={() => nextBag(index)}
                 disabled={saved}
-                className="col-start-2 sm:col-start-auto bg-blue-600 text-white px-5 py-4 rounded-xl text-lg sm:text-xl disabled:bg-gray-400"
+                className="col-start-2 md:col-start-auto bg-blue-600 text-white px-5 py-4 rounded-xl text-lg sm:text-xl disabled:bg-gray-400"
               >
                 Next
               </button>
@@ -208,7 +221,7 @@ export default function TruckPage() {
                 onTouchStart={(e) => e.preventDefault()}
                 onClick={() => removeBag(index)}
                 disabled={saved}
-                className="col-start-2 sm:col-start-auto bg-red-600 text-white px-5 py-4 rounded-xl text-lg sm:text-xl disabled:bg-gray-400"
+                className="col-start-2 md:col-start-auto bg-red-600 text-white px-5 py-4 rounded-xl text-lg sm:text-xl disabled:bg-gray-400"
               >
                 Remove
               </button>
