@@ -30,23 +30,27 @@ export default function TruckPage() {
 
       setTimeout(() => {
         bagRefs.current[next.length - 1]?.focus();
-      }, 50);
+      }, 80);
 
       return next;
     });
   }
 
-  function removeBag(index: number) {
-    if (bags.length === 1) return;
-    setBags(bags.filter((_, i) => i !== index));
-  }
-
-  function handleBagEnter(index: number) {
+  function nextBag(index: number) {
     if (index === bags.length - 1) {
       addBagAndFocus();
     } else {
       bagRefs.current[index + 1]?.focus();
     }
+  }
+
+  function removeBag(index: number) {
+    if (bags.length === 1) return;
+    setBags(bags.filter((_, i) => i !== index));
+
+    setTimeout(() => {
+      bagRefs.current[Math.max(0, index - 1)]?.focus();
+    }, 80);
   }
 
   const totalBags = bags.filter((bag) => bag > 0).length;
@@ -106,31 +110,33 @@ export default function TruckPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
-        <Link href="/" className="text-blue-600 text-lg">
+    <div className="min-h-screen bg-gray-100 p-3 sm:p-6 lg:p-8">
+      <div className="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
+        <Link href="/" className="text-blue-600 text-base sm:text-lg">
           ← Back
         </Link>
 
-        <div className="flex justify-between items-start mt-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between gap-4 sm:items-start mt-4 mb-6">
           <div>
-            <h1 className="text-4xl font-bold">Truck #{id}</h1>
-            <p className="text-gray-500 mt-2">Bottle Receiving Report</p>
+            <h1 className="text-3xl sm:text-4xl font-bold">Truck #{id}</h1>
+            <p className="text-gray-500 mt-2 text-base sm:text-lg">
+              Bottle Receiving Report
+            </p>
           </div>
 
-          <div className="text-right">
+          <div className="sm:text-right">
             <p className="text-gray-500">Date</p>
-            <p className="text-2xl font-bold">{today}</p>
+            <p className="text-2xl sm:text-3xl font-bold">{today}</p>
           </div>
         </div>
 
         {saved && (
-          <div className="mb-6 bg-green-100 text-green-700 p-4 rounded-xl text-xl font-bold">
+          <div className="mb-6 bg-green-100 text-green-700 p-4 rounded-xl text-lg sm:text-xl font-bold">
             ✅ Report saved successfully
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div>
             <label className="block mb-2 text-lg font-semibold">
               Arrival Time
@@ -159,12 +165,17 @@ export default function TruckPage() {
           </div>
         </div>
 
-        <h2 className="text-3xl font-bold mb-4">Bag Counts</h2>
+        <h2 className="text-3xl sm:text-4xl font-bold mb-4">Bag Counts</h2>
 
         <div className="space-y-4 mb-8">
           {bags.map((bag, index) => (
-            <div key={index} className="flex gap-4 items-center">
-              <label className="w-24 text-xl">Bag #{index + 1}</label>
+            <div
+              key={index}
+              className="grid grid-cols-[70px_1fr] sm:grid-cols-[100px_1fr_auto_auto] gap-3 sm:gap-4 items-center"
+            >
+              <label className="text-xl sm:text-2xl">
+                Bag #{index + 1}
+              </label>
 
               <input
                 ref={(el) => {
@@ -177,19 +188,27 @@ export default function TruckPage() {
                 value={bag || ""}
                 disabled={saved}
                 onChange={(e) => updateBag(index, e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleBagEnter(index);
-                  }
-                }}
-                className="flex-1 border p-4 rounded-xl text-xl"
+                className="min-w-0 border p-4 rounded-xl text-2xl sm:text-3xl"
               />
 
               <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onTouchStart={(e) => e.preventDefault()}
+                onClick={() => nextBag(index)}
+                disabled={saved}
+                className="col-start-2 sm:col-start-auto bg-blue-600 text-white px-5 py-4 rounded-xl text-lg sm:text-xl disabled:bg-gray-400"
+              >
+                Next
+              </button>
+
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onTouchStart={(e) => e.preventDefault()}
                 onClick={() => removeBag(index)}
                 disabled={saved}
-                className="bg-red-600 text-white px-5 py-4 rounded-xl disabled:bg-gray-400"
+                className="col-start-2 sm:col-start-auto bg-red-600 text-white px-5 py-4 rounded-xl text-lg sm:text-xl disabled:bg-gray-400"
               >
                 Remove
               </button>
@@ -197,32 +216,37 @@ export default function TruckPage() {
           ))}
         </div>
 
-        <div className="flex gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
           <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.preventDefault()}
             onClick={addBagAndFocus}
             disabled={saved}
-            className="bg-green-600 text-white px-6 py-4 rounded-xl text-xl disabled:bg-gray-400"
+            className="w-full sm:w-auto bg-green-600 text-white px-6 py-4 rounded-xl text-xl disabled:bg-gray-400"
           >
             + Add Bag
           </button>
 
           <button
+            type="button"
             onClick={saveReport}
             disabled={saved || saving}
-            className="bg-blue-600 text-white px-6 py-4 rounded-xl text-xl disabled:bg-gray-400"
+            className="w-full sm:w-auto bg-blue-600 text-white px-6 py-4 rounded-xl text-xl disabled:bg-gray-400"
           >
             {saving ? "Saving..." : saved ? "Saved" : "Save Report"}
           </button>
 
           <button
+            type="button"
             onClick={printInvoice}
-            className="bg-black text-white px-6 py-4 rounded-xl text-xl"
+            className="w-full sm:w-auto bg-black text-white px-6 py-4 rounded-xl text-xl"
           >
             Print Invoice
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 border-t pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 border-t pt-6">
           <div className="bg-gray-50 p-6 rounded-xl">
             <p className="text-gray-600">Total Bags</p>
             <p className="text-4xl font-bold">{totalBags}</p>
