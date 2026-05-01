@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
@@ -16,19 +16,37 @@ export default function TruckPage() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const bagRefs = useRef<Array<HTMLInputElement | null>>([]);
+
   function updateBag(index: number, value: string) {
     const newBags = [...bags];
     newBags[index] = Number(value);
     setBags(newBags);
   }
 
-  function addBag() {
-    setBags([...bags, 0]);
+  function addBagAndFocus() {
+    setBags((prev) => {
+      const next = [...prev, 0];
+
+      setTimeout(() => {
+        bagRefs.current[next.length - 1]?.focus();
+      }, 50);
+
+      return next;
+    });
   }
 
   function removeBag(index: number) {
     if (bags.length === 1) return;
     setBags(bags.filter((_, i) => i !== index));
+  }
+
+  function handleBagEnter(index: number) {
+    if (index === bags.length - 1) {
+      addBagAndFocus();
+    } else {
+      bagRefs.current[index + 1]?.focus();
+    }
   }
 
   const totalBags = bags.filter((bag) => bag > 0).length;
@@ -149,10 +167,22 @@ export default function TruckPage() {
               <label className="w-24 text-xl">Bag #{index + 1}</label>
 
               <input
+                ref={(el) => {
+                  bagRefs.current[index] = el;
+                }}
                 type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                enterKeyHint="next"
                 value={bag || ""}
                 disabled={saved}
                 onChange={(e) => updateBag(index, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleBagEnter(index);
+                  }
+                }}
                 className="flex-1 border p-4 rounded-xl text-xl"
               />
 
@@ -169,7 +199,7 @@ export default function TruckPage() {
 
         <div className="flex gap-4 mb-8">
           <button
-            onClick={addBag}
+            onClick={addBagAndFocus}
             disabled={saved}
             className="bg-green-600 text-white px-6 py-4 rounded-xl text-xl disabled:bg-gray-400"
           >
