@@ -1,23 +1,28 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 type BagItem = {
   type: "bottle" | "glass" | "garbich" | "straight";
   count: string;
 };
 
-export default function TruckPage() {
-  const params = useParams();
-  const router = useRouter();
-  const id = params.id as string;
+type Customer = {
+  id: string;
+  name: string;
+};
 
+export default function CustomTruckPage() {
+  const router = useRouter();
   const today = new Date().toLocaleDateString();
 
   const [managerName, setManagerName] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [lastSelectedType, setLastSelectedType] =
     useState<BagItem["type"]>("bottle");
   const [bags, setBags] = useState<BagItem[]>([
@@ -38,7 +43,22 @@ export default function TruckPage() {
     }
 
     setManagerName(name);
+    loadCustomers();
   }, [router]);
+
+  async function loadCustomers() {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("id, name")
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setCustomers(data || []);
+  }
 
   function updateBagType(index: number, type: BagItem["type"]) {
     setLastSelectedType(type);
@@ -127,8 +147,13 @@ export default function TruckPage() {
   async function saveReport() {
     if (saving || saved) return;
 
+    if (!customerName.trim()) {
+      alert("Please enter customer name.");
+      return;
+    }
+
     if (!arrivalTime || !managerName) {
-      alert("Please fill Arrival Time. Manager name is required from login.");
+      alert("Please fill Arrival Time.");
       return;
     }
 
@@ -146,12 +171,12 @@ export default function TruckPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          truckId: id,
+          truckId: "CUSTOM",
           arrivalTime,
           managerName,
+          customerName: customerName.trim().toUpperCase(),
+          isCustomTruck: true,
           bags,
-          isCustomTruck: false,
-          customerName: null,
         }),
       });
 
@@ -174,7 +199,8 @@ export default function TruckPage() {
       }
 
       setSaved(true);
-      alert("Report saved successfully!");
+      alert("Custom truck report saved successfully!");
+      loadCustomers();
     } catch (error) {
       console.error(error);
       alert("Something went wrong while saving.");
@@ -197,11 +223,11 @@ export default function TruckPage() {
         <div className="flex flex-col sm:flex-row justify-between gap-4 sm:items-start mt-4 mb-8">
           <div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-              Truck #{id}
+              Custom Truck
             </h1>
 
             <p className="text-gray-500 mt-2 text-base sm:text-lg">
-              Receiving Report
+              Customer Receiving Report
             </p>
 
             <p className="text-blue-700 mt-2 text-lg font-bold">
@@ -217,11 +243,32 @@ export default function TruckPage() {
 
         {saved && (
           <div className="mb-6 bg-green-100 text-green-700 p-4 rounded-xl text-lg sm:text-xl font-bold">
-            ✅ Report saved successfully
+            ✅ Custom truck report saved successfully
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-5 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+          <div className="min-w-0">
+            <label className="block mb-2 text-lg font-semibold">
+              Customer Name
+            </label>
+
+            <input
+              list="customer-list"
+              value={customerName}
+              disabled={saved}
+              onChange={(e) => setCustomerName(e.target.value.toUpperCase())}
+              placeholder="Start typing customer name..."
+              className="w-full min-w-0 border p-4 rounded-xl text-xl sm:text-2xl uppercase"
+            />
+
+            <datalist id="customer-list">
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.name} />
+              ))}
+            </datalist>
+          </div>
+
           <div className="min-w-0">
             <label className="block mb-2 text-lg font-semibold">
               Arrival Time

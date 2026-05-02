@@ -218,61 +218,80 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          {trucks.length === 0 ? (
-            <div className="border-2 border-dashed rounded-3xl p-12 text-center text-slate-500">
-              No trucks found. Add trucks from Admin Panel.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-5">
-              {trucks.map((truck) => {
-                const status = getDocsStatus(truck);
+          <div className="grid grid-cols-2 gap-5">
+            {trucks.map((truck) => {
+              const status = getDocsStatus(truck);
 
-                return (
-                  <div
-                    key={truck.id}
-                    className="group bg-slate-50 rounded-3xl p-4 border hover:shadow-lg transition"
-                  >
-                    {status.level === "expired" && (
-                      <div className="mb-3 inline-flex bg-red-100 text-red-700 border border-red-300 px-4 py-2 rounded-full text-sm font-bold">
-                        {status.text}
-                      </div>
-                    )}
-
-                    <div className="flex gap-3">
-                      <Link
-                        href={`/trucks/${truck.truck_number}`}
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-7 rounded-2xl text-2xl font-black shadow hover:scale-[1.01] transition"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span>🚚 {truck.truck_name}</span>
-                          <span className="text-blue-100 text-lg">
-                            Start →
-                          </span>
-                        </div>
-                      </Link>
-
-                      <Link
-                        href={`/trucks-info/${truck.truck_number}`}
-                        className="relative bg-white hover:bg-slate-100 px-6 flex items-center justify-center rounded-2xl text-3xl border shadow-sm transition"
-                      >
-                        {status.level === "expired" && (
-                          <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-600 rounded-full border-2 border-white animate-pulse"></span>
-                        )}
-
-                        {status.level === "soon" && (
-                          <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
-                        )}
-
-                        {status.level === "warning" && (
-                          <span className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white"></span>
-                        )}
-
-                        ⓘ
-                      </Link>
+              return (
+                <div
+                  key={truck.id}
+                  className="group bg-slate-50 rounded-3xl p-4 border hover:shadow-lg transition"
+                >
+                  {status.level === "expired" && (
+                    <div className="mb-3 inline-flex bg-red-100 text-red-700 border border-red-300 px-4 py-2 rounded-full text-sm font-bold">
+                      {status.text}
                     </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <Link
+                      href={`/trucks/${truck.truck_number}`}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-7 rounded-2xl text-2xl font-black shadow hover:scale-[1.01] transition"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span>🚚 {truck.truck_name}</span>
+                        <span className="text-blue-100 text-lg">Start →</span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href={`/trucks-info/${truck.truck_number}`}
+                      className="relative bg-white hover:bg-slate-100 px-6 flex items-center justify-center rounded-2xl text-3xl border shadow-sm transition"
+                    >
+                      {status.level === "expired" && (
+                        <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-600 rounded-full border-2 border-white animate-pulse"></span>
+                      )}
+
+                      {status.level === "soon" && (
+                        <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                      )}
+
+                      {status.level === "warning" && (
+                        <span className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-400 rounded-full border-2 border-white"></span>
+                      )}
+
+                      ⓘ
+                    </Link>
                   </div>
-                );
-              })}
+                </div>
+              );
+            })}
+
+            <div className="group bg-slate-50 rounded-3xl p-4 border hover:shadow-lg transition">
+              <div className="flex gap-3">
+                <Link
+                  href="/custom-truck"
+                  className="flex-1 bg-gradient-to-r from-slate-900 to-slate-700 text-white p-7 rounded-2xl text-2xl font-black shadow hover:scale-[1.01] transition"
+                >
+                  <div className="flex justify-between items-center">
+                    <span>➕ Custom Truck</span>
+                    <span className="text-slate-300 text-lg">Start →</span>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/custom-truck"
+                  className="bg-white hover:bg-slate-100 px-6 flex items-center justify-center rounded-2xl text-3xl border shadow-sm transition"
+                >
+                  +
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {trucks.length === 0 && (
+            <div className="border-2 border-dashed rounded-3xl p-12 text-center text-slate-500 mt-5">
+              No trucks found. Add trucks from Admin Panel.
             </div>
           )}
         </div>

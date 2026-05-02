@@ -2,24 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import jsPDF from "jspdf";
+import { supabase } from "@/lib/supabase";
 
-export default function ReportDetailPage() {
+type CountType = "bottle" | "glass" | "garbich" | "straight";
+
+export default function ReportPage() {
   const params = useParams();
   const id = params.id as string;
 
   const [session, setSession] = useState<any>(null);
   const [bags, setBags] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadReport();
   }, []);
 
   async function loadReport() {
+    setLoading(true);
+
     const { data: sessionData, error: sessionError } = await supabase
       .from("truck_sessions")
       .select("*")
@@ -28,7 +33,7 @@ export default function ReportDetailPage() {
 
     if (sessionError) {
       alert("Error loading report");
-      console.error(sessionError);
+      setLoading(false);
       return;
     }
 
@@ -39,79 +44,180 @@ export default function ReportDetailPage() {
       .order("bag_number", { ascending: true });
 
     if (bagError) {
-      alert("Error loading bags");
-      console.error(bagError);
+      alert("Error loading bag counts");
+      setLoading(false);
       return;
     }
 
     setSession(sessionData);
     setBags(bagData || []);
+    setLoading(false);
+  }
+
+  function printInvoice() {
+    window.print();
+  }
+
+  function getItemTypeAndCount(bag: any) {
+    if ((bag.bottle_count || 0) > 0) {
+      return { type: "Bottle ♻️", count: bag.bottle_count };
+    }
+
+    if ((bag.glass_count || 0) > 0) {
+      return { type: "Glass 🍾", count: bag.glass_count };
+    }
+
+    if ((bag.trash_count || 0) > 0) {
+      return { type: "GARBICH 🗑️", count: bag.trash_count };
+    }
+
+    if ((bag.straight_count || 0) > 0) {
+      return { type: "STRAIGHT ✅", count: bag.straight_count };
+    }
+
+    return { type: "Empty", count: 0 };
+  }
+
+  function getBagType(bag: any): CountType {
+    if ((bag.glass_count || 0) > 0) return "glass";
+    if ((bag.trash_count || 0) > 0) return "garbich";
+    if ((bag.straight_count || 0) > 0) return "straight";
+    return "bottle";
+  }
+
+  function getBagCount(bag: any) {
+    return (
+      bag.bottle_count ||
+      bag.glass_count ||
+      bag.trash_count ||
+      bag.straight_count ||
+      0
+    );
+  }
+
+  function updateBagType(index: number, type: CountType) {
+    setBags((prev) => {
+      const next = [...prev];
+      const count = getBagCount(next[index]);
+
+      next[index] = {
+        ...next[index],
+        bottle_count: type === "bottle" ? count : 0,
+        glass_count: type === "glass" ? count : 0,
+        trash_count: type === "garbich" ? count : 0,
+        straight_count: type === "straight" ? count : 0,
+      };
+
+      return next;
+    });
+  }
+
+  function updateBagCount(index: number, value: string) {
+    setBags((prev) => {
+      const next = [...prev];
+      const type = getBagType(next[index]);
+      const count = Number(value || 0);
+
+      next[index] = {
+        ...next[index],
+        bottle_count: type === "bottle" ? count : 0,
+        glass_count: type === "glass" ? count : 0,
+        trash_count: type === "garbich" ? count : 0,
+        straight_count: type === "straight" ? count : 0,
+      };
+
+      return next;
+    });
   }
 
   function startEdit() {
-    const password = prompt("Enter admin password to edit:");
+    const password = prompt("Enter admin password:");
     if (!password) return;
 
-    setAdminPassword(password);
+    localStorage.setItem("reportEditPassword", password);
     setEditMode(true);
   }
 
-  function updateBag(index: number, value: string) {
-    const newBags = [...bags];
-    newBags[index].bottle_count = Number(value);
-    setBags(newBags);
-  }
-
   async function saveChanges() {
-    const res = await fetch("/api/admin/update-report", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sessionId: id,
-        password: adminPassword,
-        bags,
-      }),
-    });
+    const password = localStorage.getItem("reportEditPassword");
 
-    const result = await res.json();
-
-    if (!res.ok) {
-      alert(result.error || "Error updating report");
+    if (!password) {
+      alert("Admin password missing");
       return;
     }
 
-    alert("Report updated successfully!");
-    setEditMode(false);
-    setAdminPassword("");
-    loadReport();
+    setSaving(true);
+
+    try {
+      const res = await fetch("/api/admin/update-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          password,
+          sessionId: id,
+          bags,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error || "Error updating report");
+        setSaving(false);
+        return;
+      }
+
+      alert("Report updated successfully!");
+      setEditMode(false);
+      localStorage.removeItem("reportEditPassword");
+      loadReport();
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong while updating.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function downloadPDF() {
+    if (!session) return;
+
     const pdf = new jsPDF();
 
     pdf.setFontSize(22);
     pdf.text("BOTTLE WORLD", 20, 20);
 
     pdf.setFontSize(14);
-    pdf.text("Truck Receiving Invoice", 20, 30);
+    pdf.text("Receiving Report", 20, 30);
 
     pdf.setFontSize(12);
-    pdf.text(`Truck: #${session.truck_id}`, 20, 45);
+
+    pdf.text(
+      session.is_custom_truck
+        ? `Customer: ${session.customer_name || "N/A"}`
+        : `Truck: #${session.truck_id}`,
+      20,
+      45
+    );
+
     pdf.text(`Manager: ${session.manager_name}`, 20, 55);
     pdf.text(`Arrival Time: ${session.arrival_time}`, 20, 65);
     pdf.text(`Date: ${new Date(session.created_at).toLocaleString()}`, 20, 75);
 
     pdf.setFontSize(14);
-    pdf.text("Bag Details", 20, 95);
+    pdf.text("Item Details", 20, 95);
 
     let y = 108;
 
     bags.forEach((bag) => {
+      const item = getItemTypeAndCount(bag);
+
       pdf.setFontSize(12);
-      pdf.text(`Bag #${bag.bag_number}`, 20, y);
-      pdf.text(`${bag.bottle_count}`, 170, y);
+      pdf.text(`#${bag.bag_number} - ${item.type}`, 20, y);
+      pdf.text(String(item.count), 170, y);
+
       y += 9;
 
       if (y > 270) {
@@ -122,43 +228,58 @@ export default function ReportDetailPage() {
 
     y += 10;
 
-    if (y > 260) {
+    if (y > 240) {
       pdf.addPage();
       y = 20;
     }
 
-    const totalBags = bags.filter((bag) => Number(bag.bottle_count) > 0).length;
-    const totalBottles = bags.reduce(
-      (sum, bag) => sum + Number(bag.bottle_count || 0),
-      0
-    );
-
     pdf.setFontSize(14);
-    pdf.text(`Total Bags: ${editMode ? totalBags : session.total_bags}`, 20, y);
-    pdf.text(
-      `Total Bottles: ${editMode ? totalBottles : session.total_bottles}`,
-      20,
-      y + 10
+    pdf.text(`Total Rows: ${session.total_bags || 0}`, 20, y);
+    pdf.text(`Total Bottles: ${session.total_bottles || 0}`, 20, y + 10);
+    pdf.text(`Total Glass: ${session.total_glass || 0}`, 20, y + 20);
+    pdf.text(`Total GARBICH: ${session.total_trash || 0}`, 20, y + 30);
+    pdf.text(`Total STRAIGHT: ${session.total_straight || 0}`, 20, y + 40);
+
+    pdf.save(
+      session.is_custom_truck
+        ? `customer-${session.customer_name}-report.pdf`
+        : `truck-${session.truck_id}-report.pdf`
     );
-
-    pdf.save(`truck-${session.truck_id}-report.pdf`);
   }
 
-  function printInvoice() {
-    window.print();
-  }
+  const totalRows = bags.filter((bag) => getBagCount(bag) > 0).length;
 
-  if (!session) return <div className="p-10 text-xl">Loading...</div>;
-
-  const totalBags = bags.filter((bag) => Number(bag.bottle_count) > 0).length;
   const totalBottles = bags.reduce(
     (sum, bag) => sum + Number(bag.bottle_count || 0),
     0
   );
 
+  const totalGlass = bags.reduce(
+    (sum, bag) => sum + Number(bag.glass_count || 0),
+    0
+  );
+
+  const totalGarbich = bags.reduce(
+    (sum, bag) => sum + Number(bag.trash_count || 0),
+    0
+  );
+
+  const totalStraight = bags.reduce(
+    (sum, bag) => sum + Number(bag.straight_count || 0),
+    0
+  );
+
+  if (loading) {
+    return <div className="p-10 text-xl">Loading...</div>;
+  }
+
+  if (!session) {
+    return <div className="p-10 text-xl">Report not found</div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8">
-      <div className="no-print mb-6 flex gap-4 items-center">
+      <div className="no-print mb-6 flex gap-4 items-center flex-wrap">
         <Link href="/history" className="text-blue-600 text-lg">
           ← Back to History
         </Link>
@@ -187,9 +308,10 @@ export default function ReportDetailPage() {
         ) : (
           <button
             onClick={saveChanges}
-            className="bg-green-600 text-white px-5 py-3 rounded-xl"
+            disabled={saving}
+            className="bg-green-600 text-white px-5 py-3 rounded-xl disabled:bg-gray-400"
           >
-            Save Changes
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         )}
       </div>
@@ -197,13 +319,19 @@ export default function ReportDetailPage() {
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
         <div className="border-b pb-6 mb-6">
           <h1 className="text-4xl font-bold">BOTTLE WORLD</h1>
-          <p className="text-gray-600 mt-2">Truck Receiving Invoice</p>
+          <p className="text-gray-600 mt-2">Receiving Report</p>
         </div>
 
         <div className="grid grid-cols-2 gap-6 mb-8">
           <div>
-            <p className="text-gray-600">Truck</p>
-            <p className="text-2xl font-bold">Truck #{session.truck_id}</p>
+            <p className="text-gray-600">
+              {session.is_custom_truck ? "Customer" : "Truck"}
+            </p>
+            <p className="text-2xl font-bold">
+              {session.is_custom_truck
+                ? session.customer_name || "N/A"
+                : `Truck #${session.truck_id}`}
+            </p>
           </div>
 
           <div>
@@ -224,58 +352,108 @@ export default function ReportDetailPage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-4">Bag Details</h2>
+        <h2 className="text-2xl font-bold mb-4">Item Details</h2>
 
         <div className="border rounded-xl overflow-hidden mb-8">
           <table className="w-full">
             <thead className="bg-gray-100">
               <tr>
-                <th className="text-left p-4">Bag #</th>
-                <th className="text-right p-4">Bottle Count</th>
+                <th className="text-left p-4">#</th>
+                <th className="text-left p-4">Type</th>
+                <th className="text-right p-4">Count</th>
               </tr>
             </thead>
 
             <tbody>
-              {bags.map((bag, index) => (
-                <tr key={bag.id} className="border-t">
-                  <td className="p-4">Bag #{bag.bag_number}</td>
-                  <td className="p-4 text-right font-bold">
-                    {editMode ? (
-                      <input
-                        type="number"
-                        value={bag.bottle_count || ""}
-                        onChange={(e) => updateBag(index, e.target.value)}
-                        className="border p-3 rounded-xl text-xl text-right w-40"
-                      />
-                    ) : (
-                      bag.bottle_count
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {bags.map((bag, index) => {
+                const item = getItemTypeAndCount(bag);
+
+                return (
+                  <tr key={bag.id} className="border-t">
+                    <td className="p-4 font-bold">#{bag.bag_number}</td>
+
+                    <td className="p-4">
+                      {editMode ? (
+                        <select
+                          value={getBagType(bag)}
+                          onChange={(e) =>
+                            updateBagType(index, e.target.value as CountType)
+                          }
+                          className="border p-3 rounded-xl font-bold"
+                        >
+                          <option value="bottle">Bottle ♻️</option>
+                          <option value="glass">Glass 🍾</option>
+                          <option value="garbich">GARBICH 🗑️</option>
+                          <option value="straight">STRAIGHT ✅</option>
+                        </select>
+                      ) : (
+                        item.type
+                      )}
+                    </td>
+
+                    <td className="p-4 text-right font-bold">
+                      {editMode ? (
+                        <input
+                          type="number"
+                          value={getBagCount(bag)}
+                          onChange={(e) =>
+                            updateBagCount(index, e.target.value)
+                          }
+                          className="border p-3 rounded-xl text-right w-32 font-bold"
+                        />
+                      ) : (
+                        item.count
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 border-t pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 border-t pt-6">
           <div className="bg-gray-50 p-6 rounded-xl">
-            <p className="text-gray-600">Total Bags</p>
+            <p className="text-gray-600">Total Rows</p>
             <p className="text-4xl font-bold">
-              {editMode ? totalBags : session.total_bags}
+              {editMode ? totalRows : session.total_bags || 0}
             </p>
           </div>
 
-          <div className="bg-gray-50 p-6 rounded-xl">
-            <p className="text-gray-600">Total Bottles</p>
+          <div className="bg-blue-50 p-6 rounded-xl">
+            <p className="text-blue-700">Total Bottles</p>
             <p className="text-4xl font-bold">
-              {editMode ? totalBottles : session.total_bottles}
+              {editMode ? totalBottles : session.total_bottles || 0}
+            </p>
+          </div>
+
+          <div className="bg-amber-50 p-6 rounded-xl">
+            <p className="text-amber-700">Total Glass</p>
+            <p className="text-4xl font-bold">
+              {editMode ? totalGlass : session.total_glass || 0}
+            </p>
+          </div>
+
+          <div className="bg-red-50 p-6 rounded-xl">
+            <p className="text-red-700">Total GARBICH</p>
+            <p className="text-4xl font-bold">
+              {editMode ? totalGarbich : session.total_trash || 0}
+            </p>
+          </div>
+
+          <div className="bg-green-50 p-6 rounded-xl">
+            <p className="text-green-700">Total STRAIGHT</p>
+            <p className="text-4xl font-bold">
+              {editMode ? totalStraight : session.total_straight || 0}
             </p>
           </div>
         </div>
 
         <div className="mt-10 border-t pt-6">
           <p className="text-gray-600">Manager Signature:</p>
-          <div className="h-16 border-b mt-4"></div>
+          <div className="h-16 border-b mt-4 font-bold text-2xl flex items-end pb-2">
+            {session.manager_name}
+          </div>
         </div>
       </div>
     </div>

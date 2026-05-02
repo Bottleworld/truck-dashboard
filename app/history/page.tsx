@@ -3,195 +3,179 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-
-type Session = {
-  id: string;
-  truck_id: string;
-  arrival_time: string;
-  manager_name: string;
-  total_bags: number;
-  total_bottles: number;
-  created_at: string;
-  expires_at: string;
-};
+import { useRouter } from "next/navigation";
 
 export default function HistoryPage() {
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const router = useRouter();
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
+    const loggedIn = localStorage.getItem("managerLoggedIn");
+
+    if (!loggedIn) {
+      router.push("/");
+      return;
+    }
+
     loadHistory();
-  }, []);
+  }, [router]);
 
   async function loadHistory() {
-    setLoading(true);
-
     const { data, error } = await supabase
       .from("truck_sessions")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error(error);
       alert("Error loading history");
-      setLoading(false);
       return;
     }
 
     setSessions(data || []);
-    setLoading(false);
   }
 
-  async function deleteReport(sessionId: string) {
-    const confirmDelete = confirm("Are you sure you want to delete this report?");
-    if (!confirmDelete) return;
-
+  async function deleteReport(id: string) {
     const password = prompt("Enter admin password to delete:");
     if (!password) return;
 
-    const res = await fetch("/api/admin/delete-report", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ sessionId, password }),
-    });
+    const confirmDelete = confirm("Are you sure you want to delete this report?");
+    if (!confirmDelete) return;
 
-    const result = await res.json();
+    setDeletingId(id);
 
-    if (!res.ok) {
-      alert(result.error || "Error deleting report");
-      return;
+    try {
+      const res = await fetch("/api/admin/delete-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          password,
+          id,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error || "Error deleting report");
+        setDeletingId(null);
+        return;
+      }
+
+      alert("Report deleted successfully!");
+      loadHistory();
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong while deleting.");
+    } finally {
+      setDeletingId(null);
     }
-
-    alert("Report deleted successfully!");
-    loadHistory();
   }
-
-  function exportCSV() {
-    const rows = filteredSessions.map((session) => ({
-      Date: new Date(session.created_at).toLocaleString(),
-      Truck: `Truck #${session.truck_id}`,
-      Manager: session.manager_name,
-      Arrival: session.arrival_time,
-      Bags: session.total_bags,
-      Bottles: session.total_bottles,
-      Expires: new Date(session.expires_at).toLocaleDateString(),
-    }));
-
-    if (rows.length === 0) {
-      alert("No data to export");
-      return;
-    }
-
-    const headers = Object.keys(rows[0]);
-    const csv = [
-      headers.join(","),
-      ...rows.map((row) =>
-        headers.map((header) => `"${row[header as keyof typeof row]}"`).join(",")
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "bottle-world-history.csv";
-    link.click();
-
-    URL.revokeObjectURL(url);
-  }
-
-  const filteredSessions = sessions.filter((session) => {
-    const text = search.toLowerCase();
-
-    return (
-      session.truck_id.toLowerCase().includes(text) ||
-      session.manager_name.toLowerCase().includes(text) ||
-      new Date(session.created_at).toLocaleDateString().includes(text) ||
-      new Date(session.created_at).toLocaleString().toLowerCase().includes(text)
-    );
-  });
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="mb-6 flex justify-between items-center">
-        <Link href="/" className="text-blue-600 text-lg">
-          ← Back to Trucks
+    <div className="min-h-screen bg-gray-100 p-6">
+      <div className="max-w-6xl mx-auto">
+        <Link href="/dashboard" className="text-blue-600 text-lg">
+          ← Back to Dashboard
         </Link>
 
-        <button
-          onClick={loadHistory}
-          className="bg-black text-white px-5 py-3 rounded-xl"
-        >
-          Refresh
-        </button>
-      </div>
+        <h1 className="text-4xl font-bold mt-6 mb-6">History</h1>
 
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2">BOTTLE WORLD</h1>
-        <p className="text-gray-600 mb-6">Truck Receiving History</p>
-
-        <div className="flex gap-4 mb-8">
-          <input
-            type="text"
-            placeholder="Search by truck, manager, or date..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 border p-4 rounded-xl text-xl"
-          />
-
-          <button
-            onClick={exportCSV}
-            className="bg-green-600 text-white px-6 py-4 rounded-xl text-xl"
-          >
-            Export Excel
-          </button>
-        </div>
-
-        {loading ? (
-          <p className="text-xl">Loading...</p>
-        ) : filteredSessions.length === 0 ? (
-          <p className="text-xl text-gray-500">No reports found.</p>
+        {sessions.length === 0 ? (
+          <p className="text-xl text-gray-500">No history yet.</p>
         ) : (
           <div className="space-y-4">
-            {filteredSessions.map((session) => (
+            {sessions.map((session) => (
               <div
                 key={session.id}
-                className="border rounded-xl p-5 flex justify-between items-center hover:bg-gray-50"
+                className="bg-white p-6 rounded-2xl shadow"
               >
-                <Link href={`/reports/${session.id}`} className="flex-1">
-                  <h2 className="text-2xl font-bold">
-                    Truck #{session.truck_id}
-                  </h2>
-                  <p className="text-gray-600">
-                    Manager: {session.manager_name}
-                  </p>
-                  <p className="text-gray-600">
-                    Arrival: {session.arrival_time}
-                  </p>
-                  <p className="text-gray-600">
-                    Date: {new Date(session.created_at).toLocaleString()}
-                  </p>
-                </Link>
+                <div className="flex justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-bold">
+                      {session.is_custom_truck
+                        ? `Customer: ${session.customer_name || "N/A"}`
+                        : `Truck #${session.truck_id}`}
+                    </h2>
 
-                <div className="text-right mr-6">
-                  <p className="text-xl">Bags: {session.total_bags}</p>
-                  <p className="text-2xl font-bold">
-                    Bottles: {session.total_bottles}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Expires: {new Date(session.expires_at).toLocaleDateString()}
-                  </p>
+                    <p className="text-gray-500">
+                      Manager: {session.manager_name}
+                    </p>
+
+                    <p className="text-gray-500">
+                      Arrival: {session.arrival_time}
+                    </p>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="text-gray-400 text-sm">
+                      {new Date(session.created_at).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => deleteReport(session.id)}
-                  className="bg-red-600 text-white px-5 py-3 rounded-xl"
-                >
-                  Delete
-                </button>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+                  <div className="bg-blue-50 p-4 rounded-xl text-center">
+                    <p className="text-blue-700">Bottles</p>
+                    <p className="text-2xl font-bold">
+                      {session.total_bottles || 0}
+                    </p>
+                  </div>
+
+                  <div className="bg-amber-50 p-4 rounded-xl text-center">
+                    <p className="text-amber-700">Glass</p>
+                    <p className="text-2xl font-bold">
+                      {session.total_glass || 0}
+                    </p>
+                  </div>
+
+                  <div className="bg-red-50 p-4 rounded-xl text-center">
+                    <p className="text-red-700">GARBICH</p>
+                    <p className="text-2xl font-bold">
+                      {session.total_trash || 0}
+                    </p>
+                  </div>
+
+                  <div className="bg-green-50 p-4 rounded-xl text-center">
+                    <p className="text-green-700">STRAIGHT</p>
+                    <p className="text-2xl font-bold">
+                      {session.total_straight || 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-wrap justify-between items-center gap-3">
+                  <p className="text-gray-600">
+                    Total Rows: {session.total_bags || 0}
+                  </p>
+
+                  <div className="flex gap-3">
+                    <Link
+                      href={`/reports/${session.id}`}
+                      className="bg-black text-white px-4 py-2 rounded-lg"
+                    >
+                      View Report
+                    </Link>
+
+                    <Link
+                      href={`/reports/${session.id}`}
+                      className="bg-orange-600 text-white px-4 py-2 rounded-lg"
+                    >
+                      Admin Edit
+                    </Link>
+
+                    <button
+                      onClick={() => deleteReport(session.id)}
+                      disabled={deletingId === session.id}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg disabled:bg-gray-400"
+                    >
+                      {deletingId === session.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
