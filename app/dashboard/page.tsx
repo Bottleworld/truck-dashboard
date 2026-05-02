@@ -12,6 +12,7 @@ type Truck = {
   insurance_expiration?: string;
   registration_expiration?: string;
   inspection_expiration?: string;
+  nvt_tax_expiration?: string;
 };
 
 export default function Home() {
@@ -51,7 +52,7 @@ export default function Home() {
     const { data } = await supabase
       .from("trucks")
       .select(
-        "id, truck_number, truck_name, plate_number, insurance_expiration, registration_expiration, inspection_expiration"
+        "id, truck_number, truck_name, plate_number, insurance_expiration, registration_expiration, inspection_expiration, nvt_tax_expiration"
       )
       .order("truck_number", { ascending: true });
 
@@ -77,6 +78,7 @@ export default function Home() {
       { name: "Insurance", days: getDaysLeft(truck.insurance_expiration) },
       { name: "Registration", days: getDaysLeft(truck.registration_expiration) },
       { name: "Inspection", days: getDaysLeft(truck.inspection_expiration) },
+      { name: "NVT Tax", days: getDaysLeft(truck.nvt_tax_expiration) },
     ];
 
     const expired = docs.find((doc) => doc.days !== null && doc.days < 0);

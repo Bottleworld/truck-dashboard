@@ -172,6 +172,12 @@ export default function TruckInfoPage() {
               date
             />
 
+            <InfoRow
+              label="NVT Tax Expiration"
+              value={truck.nvt_tax_expiration}
+              date
+            />
+
             <div className="border rounded-2xl p-5">
               <p className="text-gray-500 text-sm">Notes</p>
               <p className="text-2xl font-bold">{truck.notes || "No notes"}</p>

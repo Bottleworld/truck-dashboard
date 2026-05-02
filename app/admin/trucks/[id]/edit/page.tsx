@@ -70,24 +70,105 @@ export default function EditTruckPage() {
         <h1 className="text-4xl font-bold mb-8">Edit {truck.truck_name}</h1>
 
         <div className="space-y-5">
-          <input type="number" value={truck.truck_number || ""} onChange={(e) => updateField("truck_number", e.target.value)} placeholder="Truck Number" className="w-full border p-4 rounded-xl text-xl" />
-          <input type="text" value={truck.truck_name || ""} onChange={(e) => updateField("truck_name", e.target.value)} placeholder="Truck Name" className="w-full border p-4 rounded-xl text-xl" />
-          <input type="text" value={truck.plate_number || ""} onChange={(e) => updateField("plate_number", e.target.value)} placeholder="Plate Number" className="w-full border p-4 rounded-xl text-xl" />
-          <input type="text" value={truck.vin || ""} onChange={(e) => updateField("vin", e.target.value)} placeholder="VIN" className="w-full border p-4 rounded-xl text-xl" />
-          <input type="text" value={truck.insurance_number || ""} onChange={(e) => updateField("insurance_number", e.target.value)} placeholder="Insurance Number" className="w-full border p-4 rounded-xl text-xl" />
+          <input
+            type="number"
+            value={truck.truck_number || ""}
+            onChange={(e) => updateField("truck_number", e.target.value)}
+            placeholder="Truck Number"
+            className="w-full border p-4 rounded-xl text-xl"
+          />
 
-          <label className="block text-lg font-medium">Insurance Expiration</label>
-          <input type="date" value={truck.insurance_expiration || ""} onChange={(e) => updateField("insurance_expiration", e.target.value)} className="w-full border p-4 rounded-xl text-xl" />
+          <input
+            type="text"
+            value={truck.truck_name || ""}
+            onChange={(e) => updateField("truck_name", e.target.value)}
+            placeholder="Truck Name"
+            className="w-full border p-4 rounded-xl text-xl"
+          />
 
-          <label className="block text-lg font-medium">Registration Expiration</label>
-          <input type="date" value={truck.registration_expiration || ""} onChange={(e) => updateField("registration_expiration", e.target.value)} className="w-full border p-4 rounded-xl text-xl" />
+          <input
+            type="text"
+            value={truck.plate_number || ""}
+            onChange={(e) => updateField("plate_number", e.target.value)}
+            placeholder="Plate Number"
+            className="w-full border p-4 rounded-xl text-xl"
+          />
 
-          <label className="block text-lg font-medium">Inspection Expiration</label>
-          <input type="date" value={truck.inspection_expiration || ""} onChange={(e) => updateField("inspection_expiration", e.target.value)} className="w-full border p-4 rounded-xl text-xl" />
+          <input
+            type="text"
+            value={truck.vin || ""}
+            onChange={(e) => updateField("vin", e.target.value)}
+            placeholder="VIN"
+            className="w-full border p-4 rounded-xl text-xl"
+          />
 
-          <textarea value={truck.notes || ""} onChange={(e) => updateField("notes", e.target.value)} placeholder="Notes" className="w-full border p-4 rounded-xl text-xl h-32" />
+          <input
+            type="text"
+            value={truck.insurance_number || ""}
+            onChange={(e) => updateField("insurance_number", e.target.value)}
+            placeholder="Insurance Number"
+            className="w-full border p-4 rounded-xl text-xl"
+          />
 
-          <button onClick={saveTruck} className="w-full bg-black text-white p-5 rounded-xl text-xl">
+          <label className="block text-lg font-medium">
+            Insurance Expiration
+          </label>
+          <input
+            type="date"
+            value={truck.insurance_expiration || ""}
+            onChange={(e) =>
+              updateField("insurance_expiration", e.target.value)
+            }
+            className="w-full border p-4 rounded-xl text-xl"
+          />
+
+          <label className="block text-lg font-medium">
+            Registration Expiration
+          </label>
+          <input
+            type="date"
+            value={truck.registration_expiration || ""}
+            onChange={(e) =>
+              updateField("registration_expiration", e.target.value)
+            }
+            className="w-full border p-4 rounded-xl text-xl"
+          />
+
+          <label className="block text-lg font-medium">
+            Inspection Expiration
+          </label>
+          <input
+            type="date"
+            value={truck.inspection_expiration || ""}
+            onChange={(e) =>
+              updateField("inspection_expiration", e.target.value)
+            }
+            className="w-full border p-4 rounded-xl text-xl"
+          />
+
+          <label className="block text-lg font-medium">
+            NVT Tax Expiration
+          </label>
+          <input
+            type="date"
+            value={truck.nvt_tax_expiration || ""}
+            onChange={(e) =>
+              updateField("nvt_tax_expiration", e.target.value)
+            }
+            className="w-full border p-4 rounded-xl text-xl"
+          />
+
+          <textarea
+            value={truck.notes || ""}
+            onChange={(e) => updateField("notes", e.target.value)}
+            placeholder="Notes"
+            className="w-full border p-4 rounded-xl text-xl h-32"
+          />
+
+          <button
+            onClick={saveTruck}
+            className="w-full bg-black text-white p-5 rounded-xl text-xl"
+          >
             Save Changes
           </button>
         </div>

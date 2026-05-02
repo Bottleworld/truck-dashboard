@@ -19,6 +19,7 @@ export async function POST(req: Request) {
         insurance_expiration: truck.insurance_expiration || null,
         registration_expiration: truck.registration_expiration || null,
         inspection_expiration: truck.inspection_expiration || null,
+        nvt_tax_expiration: truck.nvt_tax_expiration || null,
         notes: truck.notes,
       },
     ]);
