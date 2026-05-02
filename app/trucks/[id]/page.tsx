@@ -1,22 +1,35 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function TruckPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
 
   const today = new Date().toLocaleDateString();
 
-  const [arrivalTime, setArrivalTime] = useState("");
   const [managerName, setManagerName] = useState("");
+  const [arrivalTime, setArrivalTime] = useState("");
   const [bags, setBags] = useState<number[]>([0]);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const bagRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  useEffect(() => {
+    const loggedIn = localStorage.getItem("managerLoggedIn");
+    const name = localStorage.getItem("managerName");
+
+    if (!loggedIn || !name) {
+      router.push("/");
+      return;
+    }
+
+    setManagerName(name);
+  }, [router]);
 
   function updateBag(index: number, value: string) {
     const newBags = [...bags];
@@ -65,7 +78,7 @@ export default function TruckPage() {
     if (saving || saved) return;
 
     if (!arrivalTime || !managerName) {
-      alert("Please fill Arrival Time and Manager Name!");
+      alert("Please fill Arrival Time. Manager name is required from login.");
       return;
     }
 
@@ -117,8 +130,8 @@ export default function TruckPage() {
   return (
     <div className="min-h-screen bg-gray-100 p-3 sm:p-6 lg:p-8">
       <div className="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
-        <Link href="/" className="text-blue-600 text-base sm:text-lg">
-          ← Back
+        <Link href="/dashboard" className="text-blue-600 text-base sm:text-lg">
+          ← Back to Dashboard
         </Link>
 
         <div className="flex flex-col sm:flex-row justify-between gap-4 sm:items-start mt-4 mb-8">
@@ -128,6 +141,9 @@ export default function TruckPage() {
             </h1>
             <p className="text-gray-500 mt-2 text-base sm:text-lg">
               Bottle Receiving Report
+            </p>
+            <p className="text-blue-700 mt-2 text-lg font-bold">
+              Manager: {managerName || "Loading..."}
             </p>
           </div>
 
@@ -143,7 +159,7 @@ export default function TruckPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+        <div className="grid grid-cols-1 gap-5 mb-10">
           <div className="min-w-0">
             <label className="block mb-2 text-lg font-semibold">
               Arrival Time
@@ -153,20 +169,6 @@ export default function TruckPage() {
               value={arrivalTime}
               disabled={saved}
               onChange={(e) => setArrivalTime(e.target.value)}
-              className="w-full min-w-0 border p-4 rounded-xl text-xl sm:text-2xl"
-            />
-          </div>
-
-          <div className="min-w-0">
-            <label className="block mb-2 text-lg font-semibold">
-              Manager Name
-            </label>
-            <input
-              type="text"
-              value={managerName}
-              disabled={saved}
-              onChange={(e) => setManagerName(e.target.value)}
-              placeholder="Manager Name"
               className="w-full min-w-0 border p-4 rounded-xl text-xl sm:text-2xl"
             />
           </div>

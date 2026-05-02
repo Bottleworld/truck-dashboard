@@ -1,20 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 export default function TruckInfoPage() {
   const params = useParams();
+  const router = useRouter();
   const id = Number(params.id);
 
   const [truck, setTruck] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loggedIn = localStorage.getItem("managerLoggedIn");
+    const name = localStorage.getItem("managerName");
+
+    if (!loggedIn || !name) {
+      router.push("/");
+      return;
+    }
+
     loadTruck();
-  }, []);
+  }, [router]);
 
   async function loadTruck() {
     const { data, error } = await supabase
@@ -125,8 +134,8 @@ export default function TruckInfoPage() {
   if (!truck) {
     return (
       <div className="p-10">
-        <Link href="/" className="text-blue-600 text-lg">
-          ← Back
+        <Link href="/dashboard" className="text-blue-600 text-lg">
+          ← Back to Dashboard
         </Link>
 
         <h1 className="text-3xl font-bold mt-6">Truck info not found</h1>
@@ -140,8 +149,8 @@ export default function TruckInfoPage() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/" className="text-blue-600 text-lg">
-          ← Back
+        <Link href="/dashboard" className="text-blue-600 text-lg">
+          ← Back to Dashboard
         </Link>
 
         <div className="bg-white rounded-3xl shadow-xl p-8 mt-6">

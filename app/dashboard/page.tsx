@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 type Truck = {
@@ -15,15 +16,28 @@ type Truck = {
   nvt_tax_expiration?: string;
 };
 
-export default function Home() {
+export default function DashboardPage() {
+  const router = useRouter();
+
+  const [managerName, setManagerName] = useState("");
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [stats, setStats] = useState({ trucks: 0, bags: 0, bottles: 0 });
 
   useEffect(() => {
+    const loggedIn = localStorage.getItem("managerLoggedIn");
+    const name = localStorage.getItem("managerName");
+
+    if (!loggedIn || !name) {
+      router.push("/");
+      return;
+    }
+
+    setManagerName(name);
+
     fetchAll();
     const interval = setInterval(fetchAll, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [router]);
 
   async function fetchAll() {
     fetchStats();
@@ -57,6 +71,12 @@ export default function Home() {
       .order("truck_number", { ascending: true });
 
     setTrucks(data || []);
+  }
+
+  function logout() {
+    localStorage.removeItem("managerLoggedIn");
+    localStorage.removeItem("managerName");
+    router.push("/");
   }
 
   function getDaysLeft(dateString?: string) {
@@ -128,9 +148,18 @@ export default function Home() {
               <p className="text-xl text-slate-500 mt-2">
                 Truck receiving, bottle count, reports, and history.
               </p>
+
+              {managerName && (
+                <p className="text-lg text-slate-600 mt-3">
+                  Logged in as:{" "}
+                  <span className="font-black text-blue-700">
+                    {managerName}
+                  </span>
+                </p>
+              )}
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap justify-end">
               <Link
                 href="/history"
                 className="bg-slate-900 text-white px-6 py-4 rounded-2xl text-lg font-bold shadow hover:bg-slate-700 transition"
@@ -144,6 +173,13 @@ export default function Home() {
               >
                 🔐 Admin
               </Link>
+
+              <button
+                onClick={logout}
+                className="bg-red-600 text-white px-6 py-4 rounded-2xl text-lg font-bold shadow hover:bg-red-500 transition"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
