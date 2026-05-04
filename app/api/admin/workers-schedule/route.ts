@@ -25,6 +25,10 @@ function getNYDateInfo() {
   return { nyDate, dayName };
 }
 
+function getCorrectPasscode() {
+  return process.env.STAFF_EDIT_PASSCODE || "0909";
+}
+
 async function ensureWorkers() {
   const { data: existingWorkers, error: existingError } = await supabaseAdmin
     .from("workers")
@@ -57,30 +61,7 @@ async function ensureWorkers() {
     throw new Error(activeError.message);
   }
 
-  if (!activeWorkers || activeWorkers.length === 0) {
-    const { error: updateError } = await supabaseAdmin
-      .from("workers")
-      .update({ active: true })
-      .in("name", DEFAULT_WORKERS);
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-
-    const { data: fixedWorkers, error: fixedError } = await supabaseAdmin
-      .from("workers")
-      .select("*")
-      .eq("active", true)
-      .order("created_at", { ascending: true });
-
-    if (fixedError) {
-      throw new Error(fixedError.message);
-    }
-
-    return fixedWorkers || [];
-  }
-
-  return activeWorkers;
+  return activeWorkers || [];
 }
 
 export async function GET() {
@@ -119,7 +100,9 @@ export async function POST(req: Request) {
   try {
     const { passcode, workerId, bagCount, managerName } = await req.json();
 
-    if (passcode !== process.env.STAFF_EDIT_PASSCODE) {
+    const correctPasscode = getCorrectPasscode();
+
+    if (passcode !== correctPasscode) {
       return NextResponse.json({ error: "Wrong passcode" }, { status: 401 });
     }
 
