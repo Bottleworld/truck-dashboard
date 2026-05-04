@@ -155,7 +155,10 @@ export default function StaffSchedulePage() {
     <div className="min-h-screen bg-slate-100 p-6 text-slate-900">
       <div className="max-w-[1500px] mx-auto">
         <div className="mb-6 flex justify-between items-center">
-          <Link href="/admin/dashboard" className="text-blue-600 text-xl font-bold">
+          <Link
+            href="/admin/dashboard"
+            className="hidden text-blue-600 text-xl font-bold"
+          >
             ← Back to Admin
           </Link>
 
@@ -188,7 +191,11 @@ export default function StaffSchedulePage() {
             </div>
 
             <div className="text-right">
-              <p className="text-2xl font-bold text-slate-500">{dayName}</p>
+              <Link href="/admin/dashboard">
+                <p className="text-2xl font-bold text-slate-500 cursor-pointer select-none">
+                  {dayName}
+                </p>
+              </Link>
               <p className="text-5xl font-black">{date}</p>
             </div>
           </div>
