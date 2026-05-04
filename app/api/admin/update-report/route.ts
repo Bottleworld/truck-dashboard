@@ -7,6 +7,7 @@ type BagUpdate = {
   glass_count?: number;
   trash_count?: number;
   straight_count?: number;
+  case_count?: number;
 };
 
 export async function POST(req: Request) {
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
     let totalGlass = 0;
     let totalTrash = 0;
     let totalStraight = 0;
+    let totalCase = 0;
     let totalRows = 0;
 
     for (const bag of bags as BagUpdate[]) {
@@ -32,8 +34,9 @@ export async function POST(req: Request) {
       const glass = Number(bag.glass_count || 0);
       const trash = Number(bag.trash_count || 0);
       const straight = Number(bag.straight_count || 0);
+      const caseCount = Number(bag.case_count || 0);
 
-      if (bottle > 0 || glass > 0 || trash > 0 || straight > 0) {
+      if (bottle > 0 || glass > 0 || trash > 0 || straight > 0 || caseCount > 0) {
         totalRows += 1;
       }
 
@@ -41,6 +44,7 @@ export async function POST(req: Request) {
       totalGlass += glass;
       totalTrash += trash;
       totalStraight += straight;
+      totalCase += caseCount;
 
       const { error } = await supabaseAdmin
         .from("bag_counts")
@@ -49,6 +53,7 @@ export async function POST(req: Request) {
           glass_count: glass,
           trash_count: trash,
           straight_count: straight,
+          case_count: caseCount,
         })
         .eq("id", bag.id);
 
@@ -65,6 +70,7 @@ export async function POST(req: Request) {
         total_glass: totalGlass,
         total_trash: totalTrash,
         total_straight: totalStraight,
+        total_case: totalCase,
       })
       .eq("id", sessionId);
 

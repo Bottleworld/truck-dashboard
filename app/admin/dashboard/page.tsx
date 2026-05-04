@@ -32,6 +32,27 @@ export default function AdminDashboardPage() {
           </Link>
 
           <Link
+            href="/admin/workers"
+            className="block bg-green-600 text-white p-5 rounded-xl text-xl font-bold"
+          >
+            👷 Manage Workers
+          </Link>
+
+          <Link
+            href="/staff-schedule"
+            className="block bg-orange-600 text-white p-5 rounded-xl text-xl font-bold"
+          >
+            📅 Open Staff Schedule
+          </Link>
+
+          <Link
+            href="/admin/workers-total"
+            className="block bg-slate-900 text-white p-5 rounded-xl text-xl font-bold"
+          >
+            📈 Workers Total Schedule
+          </Link>
+
+          <Link
             href="/admin/analytics"
             className="block bg-purple-600 text-white p-5 rounded-xl text-xl font-bold"
           >

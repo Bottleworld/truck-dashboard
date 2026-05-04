@@ -6,7 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 type BagItem = {
-  type: "bottle" | "glass" | "garbich" | "straight";
+  type: "bottle" | "glass" | "garbich" | "straight" | "case";
   count: string;
 };
 
@@ -142,6 +142,10 @@ export default function CustomTruckPage() {
 
   const totalStraight = validBags
     .filter((bag) => bag.type === "straight")
+    .reduce((sum, bag) => sum + Number(bag.count || 0), 0);
+
+  const totalCase = validBags
+    .filter((bag) => bag.type === "case")
     .reduce((sum, bag) => sum + Number(bag.count || 0), 0);
 
   async function saveReport() {
@@ -306,8 +310,9 @@ export default function CustomTruckPage() {
               >
                 <option value="bottle">Bottle ♻️</option>
                 <option value="glass">Glass 🍾</option>
-                <option value="garbich">GARBICH 🗑️</option>
+                <option value="garbich">GARBAGE 🗑️</option>
                 <option value="straight">STRAIGHT ✅</option>
+                <option value="case">Case 📦</option>
               </select>
 
               <input
@@ -386,7 +391,7 @@ export default function CustomTruckPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 sm:gap-6 border-t pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-6 gap-4 sm:gap-6 border-t pt-6">
           <div className="bg-gray-50 p-6 rounded-xl">
             <p className="text-gray-600">Total Rows</p>
             <p className="text-4xl font-bold">{totalRows}</p>
@@ -403,13 +408,18 @@ export default function CustomTruckPage() {
           </div>
 
           <div className="bg-red-50 p-6 rounded-xl">
-            <p className="text-red-700">Total GARBICH</p>
+            <p className="text-red-700">Total GARBAGE</p>
             <p className="text-4xl font-bold">{totalGarbich}</p>
           </div>
 
           <div className="bg-green-50 p-6 rounded-xl">
             <p className="text-green-700">Total STRAIGHT</p>
             <p className="text-4xl font-bold">{totalStraight}</p>
+          </div>
+
+          <div className="bg-purple-50 p-6 rounded-xl">
+            <p className="text-purple-700">Total Case</p>
+            <p className="text-4xl font-bold">{totalCase}</p>
           </div>
         </div>
 

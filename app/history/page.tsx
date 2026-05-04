@@ -77,7 +77,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Link href="/dashboard" className="text-blue-600 text-lg">
           ← Back to Dashboard
         </Link>
@@ -117,7 +117,7 @@ export default function HistoryPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-5">
                   <div className="bg-blue-50 p-4 rounded-xl text-center">
                     <p className="text-blue-700">Bottles</p>
                     <p className="text-2xl font-bold">
@@ -133,7 +133,7 @@ export default function HistoryPage() {
                   </div>
 
                   <div className="bg-red-50 p-4 rounded-xl text-center">
-                    <p className="text-red-700">GARBICH</p>
+                    <p className="text-red-700">GARBAGE</p>
                     <p className="text-2xl font-bold">
                       {session.total_trash || 0}
                     </p>
@@ -143,6 +143,13 @@ export default function HistoryPage() {
                     <p className="text-green-700">STRAIGHT</p>
                     <p className="text-2xl font-bold">
                       {session.total_straight || 0}
+                    </p>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-xl text-center">
+                    <p className="text-purple-700">Case</p>
+                    <p className="text-2xl font-bold">
+                      {session.total_case || 0}
                     </p>
                   </div>
                 </div>

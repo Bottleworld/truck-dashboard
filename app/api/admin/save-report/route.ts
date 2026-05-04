@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type BagItem = {
-  type: "bottle" | "glass" | "garbich" | "straight" | "";
+  type: "bottle" | "glass" | "garbich" | "straight" | "case" | "";
   count: string | number;
 };
 
@@ -48,6 +48,10 @@ export async function POST(req: Request) {
       .filter((bag) => bag.type === "straight")
       .reduce((sum, bag) => sum + Number(bag.count || 0), 0);
 
+    const totalCase = validBags
+      .filter((bag) => bag.type === "case")
+      .reduce((sum, bag) => sum + Number(bag.count || 0), 0);
+
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
@@ -71,6 +75,7 @@ export async function POST(req: Request) {
           total_glass: totalGlass,
           total_trash: totalGarbich,
           total_straight: totalStraight,
+          total_case: totalCase,
           customer_name: customerName
             ? String(customerName).trim().toUpperCase()
             : null,
@@ -92,6 +97,7 @@ export async function POST(req: Request) {
       glass_count: bag.type === "glass" ? Number(bag.count) : 0,
       trash_count: bag.type === "garbich" ? Number(bag.count) : 0,
       straight_count: bag.type === "straight" ? Number(bag.count) : 0,
+      case_count: bag.type === "case" ? Number(bag.count) : 0,
     }));
 
     const { error: bagError } = await supabaseAdmin

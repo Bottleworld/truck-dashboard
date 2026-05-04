@@ -6,7 +6,7 @@ import Link from "next/link";
 import jsPDF from "jspdf";
 import { supabase } from "@/lib/supabase";
 
-type CountType = "bottle" | "glass" | "garbich" | "straight";
+type CountType = "bottle" | "glass" | "garbich" | "straight" | "case";
 
 export default function ReportPage() {
   const params = useParams();
@@ -68,11 +68,15 @@ export default function ReportPage() {
     }
 
     if ((bag.trash_count || 0) > 0) {
-      return { type: "GARBICH 🗑️", count: bag.trash_count };
+      return { type: "GARBAGE 🗑️", count: bag.trash_count };
     }
 
     if ((bag.straight_count || 0) > 0) {
       return { type: "STRAIGHT ✅", count: bag.straight_count };
+    }
+
+    if ((bag.case_count || 0) > 0) {
+      return { type: "Case 📦", count: bag.case_count };
     }
 
     return { type: "Empty", count: 0 };
@@ -82,6 +86,7 @@ export default function ReportPage() {
     if ((bag.glass_count || 0) > 0) return "glass";
     if ((bag.trash_count || 0) > 0) return "garbich";
     if ((bag.straight_count || 0) > 0) return "straight";
+    if ((bag.case_count || 0) > 0) return "case";
     return "bottle";
   }
 
@@ -91,6 +96,7 @@ export default function ReportPage() {
       bag.glass_count ||
       bag.trash_count ||
       bag.straight_count ||
+      bag.case_count ||
       0
     );
   }
@@ -106,6 +112,7 @@ export default function ReportPage() {
         glass_count: type === "glass" ? count : 0,
         trash_count: type === "garbich" ? count : 0,
         straight_count: type === "straight" ? count : 0,
+        case_count: type === "case" ? count : 0,
       };
 
       return next;
@@ -124,6 +131,7 @@ export default function ReportPage() {
         glass_count: type === "glass" ? count : 0,
         trash_count: type === "garbich" ? count : 0,
         straight_count: type === "straight" ? count : 0,
+        case_count: type === "case" ? count : 0,
       };
 
       return next;
@@ -228,7 +236,7 @@ export default function ReportPage() {
 
     y += 10;
 
-    if (y > 240) {
+    if (y > 230) {
       pdf.addPage();
       y = 20;
     }
@@ -237,8 +245,9 @@ export default function ReportPage() {
     pdf.text(`Total Rows: ${session.total_bags || 0}`, 20, y);
     pdf.text(`Total Bottles: ${session.total_bottles || 0}`, 20, y + 10);
     pdf.text(`Total Glass: ${session.total_glass || 0}`, 20, y + 20);
-    pdf.text(`Total GARBICH: ${session.total_trash || 0}`, 20, y + 30);
+    pdf.text(`Total GARBAGE: ${session.total_trash || 0}`, 20, y + 30);
     pdf.text(`Total STRAIGHT: ${session.total_straight || 0}`, 20, y + 40);
+    pdf.text(`Total Case: ${session.total_case || 0}`, 20, y + 50);
 
     pdf.save(
       session.is_custom_truck
@@ -266,6 +275,11 @@ export default function ReportPage() {
 
   const totalStraight = bags.reduce(
     (sum, bag) => sum + Number(bag.straight_count || 0),
+    0
+  );
+
+  const totalCase = bags.reduce(
+    (sum, bag) => sum + Number(bag.case_count || 0),
     0
   );
 
@@ -316,7 +330,7 @@ export default function ReportPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-5xl mx-auto">
         <div className="border-b pb-6 mb-6">
           <h1 className="text-4xl font-bold">BOTTLE WORLD</h1>
           <p className="text-gray-600 mt-2">Receiving Report</p>
@@ -383,8 +397,9 @@ export default function ReportPage() {
                         >
                           <option value="bottle">Bottle ♻️</option>
                           <option value="glass">Glass 🍾</option>
-                          <option value="garbich">GARBICH 🗑️</option>
+                          <option value="garbich">GARBAGE 🗑️</option>
                           <option value="straight">STRAIGHT ✅</option>
+                          <option value="case">Case 📦</option>
                         </select>
                       ) : (
                         item.type
@@ -412,7 +427,7 @@ export default function ReportPage() {
           </table>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 border-t pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-6 gap-4 border-t pt-6">
           <div className="bg-gray-50 p-6 rounded-xl">
             <p className="text-gray-600">Total Rows</p>
             <p className="text-4xl font-bold">
@@ -435,7 +450,7 @@ export default function ReportPage() {
           </div>
 
           <div className="bg-red-50 p-6 rounded-xl">
-            <p className="text-red-700">Total GARBICH</p>
+            <p className="text-red-700">Total GARBAGE</p>
             <p className="text-4xl font-bold">
               {editMode ? totalGarbich : session.total_trash || 0}
             </p>
@@ -445,6 +460,13 @@ export default function ReportPage() {
             <p className="text-green-700">Total STRAIGHT</p>
             <p className="text-4xl font-bold">
               {editMode ? totalStraight : session.total_straight || 0}
+            </p>
+          </div>
+
+          <div className="bg-purple-50 p-6 rounded-xl">
+            <p className="text-purple-700">Total Case</p>
+            <p className="text-4xl font-bold">
+              {editMode ? totalCase : session.total_case || 0}
             </p>
           </div>
         </div>
