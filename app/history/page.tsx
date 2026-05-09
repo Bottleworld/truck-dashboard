@@ -108,6 +108,18 @@ export default function HistoryPage() {
                     <p className="text-gray-500">
                       Arrival: {session.arrival_time}
                     </p>
+
+                    {session.notes && (
+                      <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-xl p-3">
+                        <p className="text-sm font-bold text-yellow-800 mb-1">
+                          📝 Notes
+                        </p>
+
+                        <p className="text-gray-700 whitespace-pre-wrap break-words">
+                          {session.notes}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="text-right">

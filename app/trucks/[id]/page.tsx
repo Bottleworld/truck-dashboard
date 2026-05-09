@@ -18,6 +18,7 @@ export default function TruckPage() {
 
   const [managerName, setManagerName] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
+  const [notes, setNotes] = useState("");
   const [lastSelectedType, setLastSelectedType] =
     useState<BagItem["type"]>("bottle");
   const [bags, setBags] = useState<BagItem[]>([
@@ -152,6 +153,7 @@ export default function TruckPage() {
           arrivalTime,
           managerName,
           bags,
+          notes,
           isCustomTruck: false,
           customerName: null,
         }),
@@ -235,6 +237,21 @@ export default function TruckPage() {
               disabled={saved}
               onChange={(e) => setArrivalTime(e.target.value)}
               className="w-full min-w-0 border p-4 rounded-xl text-xl sm:text-2xl"
+            />
+          </div>
+
+          <div className="min-w-0">
+            <label className="block mb-2 text-lg font-semibold">
+              Add Note
+            </label>
+
+            <textarea
+              value={notes}
+              disabled={saved}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Write note here..."
+              rows={4}
+              className="w-full min-w-0 border p-4 rounded-xl text-lg resize-none"
             />
           </div>
         </div>

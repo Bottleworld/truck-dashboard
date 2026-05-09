@@ -14,6 +14,7 @@ export default function ReportPage() {
 
   const [session, setSession] = useState<any>(null);
   const [bags, setBags] = useState<any[]>([]);
+  const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -50,6 +51,7 @@ export default function ReportPage() {
     }
 
     setSession(sessionData);
+    setNotes(sessionData.notes || "");
     setBags(bagData || []);
     setLoading(false);
   }
@@ -166,6 +168,7 @@ export default function ReportPage() {
           password,
           sessionId: id,
           bags,
+          notes,
         }),
       });
 
@@ -214,10 +217,19 @@ export default function ReportPage() {
     pdf.text(`Arrival Time: ${session.arrival_time}`, 20, 65);
     pdf.text(`Date: ${new Date(session.created_at).toLocaleString()}`, 20, 75);
 
-    pdf.setFontSize(14);
-    pdf.text("Item Details", 20, 95);
+    let y = 85;
 
-    let y = 108;
+    if (notes) {
+      pdf.setFontSize(12);
+      const splitNotes = pdf.splitTextToSize(`Notes: ${notes}`, 170);
+      pdf.text(splitNotes, 20, y);
+      y += splitNotes.length * 7 + 8;
+    }
+
+    pdf.setFontSize(14);
+    pdf.text("Item Details", 20, y);
+
+    y += 13;
 
     bags.forEach((bag) => {
       const item = getItemTypeAndCount(bag);
@@ -242,12 +254,12 @@ export default function ReportPage() {
     }
 
     pdf.setFontSize(14);
-    pdf.text(`Total Rows: ${session.total_bags || 0}`, 20, y);
-    pdf.text(`Total Bottles: ${session.total_bottles || 0}`, 20, y + 10);
-    pdf.text(`Total Glass: ${session.total_glass || 0}`, 20, y + 20);
-    pdf.text(`Total GARBAGE: ${session.total_trash || 0}`, 20, y + 30);
-    pdf.text(`Total STRAIGHT: ${session.total_straight || 0}`, 20, y + 40);
-    pdf.text(`Total Case: ${session.total_case || 0}`, 20, y + 50);
+    pdf.text(`Total Rows: ${editMode ? totalRows : session.total_bags || 0}`, 20, y);
+    pdf.text(`Total Bottles: ${editMode ? totalBottles : session.total_bottles || 0}`, 20, y + 10);
+    pdf.text(`Total Glass: ${editMode ? totalGlass : session.total_glass || 0}`, 20, y + 20);
+    pdf.text(`Total GARBAGE: ${editMode ? totalGarbich : session.total_trash || 0}`, 20, y + 30);
+    pdf.text(`Total STRAIGHT: ${editMode ? totalStraight : session.total_straight || 0}`, 20, y + 40);
+    pdf.text(`Total Case: ${editMode ? totalCase : session.total_case || 0}`, 20, y + 50);
 
     pdf.save(
       session.is_custom_truck
@@ -363,6 +375,23 @@ export default function ReportPage() {
           <div>
             <p className="text-gray-600">Manager</p>
             <p className="text-2xl font-bold">{session.manager_name}</p>
+          </div>
+
+          <div className="col-span-2">
+            <p className="text-gray-600">Notes</p>
+
+            {editMode ? (
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={4}
+                className="w-full border p-4 rounded-xl mt-2"
+              />
+            ) : (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mt-2 whitespace-pre-wrap break-words">
+                {notes || "No notes"}
+              </div>
+            )}
           </div>
         </div>
 

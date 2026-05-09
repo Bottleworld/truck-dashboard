@@ -15,6 +15,7 @@ export async function POST(req: Request) {
       bags,
       customerName,
       isCustomTruck,
+      notes,
     } = await req.json();
 
     if (!truckId || !arrivalTime || !managerName || !Array.isArray(bags)) {
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
           total_trash: totalGarbich,
           total_straight: totalStraight,
           total_case: totalCase,
+          notes: notes || null,
           customer_name: customerName
             ? String(customerName).trim().toUpperCase()
             : null,
@@ -87,7 +89,10 @@ export async function POST(req: Request) {
       .single();
 
     if (sessionError) {
-      return NextResponse.json({ error: sessionError.message }, { status: 500 });
+      return NextResponse.json(
+        { error: sessionError.message },
+        { status: 500 }
+      );
     }
 
     const bagData = validBags.map((bag, index) => ({

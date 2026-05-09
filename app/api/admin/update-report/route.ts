@@ -12,7 +12,7 @@ type BagUpdate = {
 
 export async function POST(req: Request) {
   try {
-    const { password, sessionId, bags } = await req.json();
+    const { password, sessionId, bags, notes } = await req.json();
 
     if (password !== process.env.ADMIN_SECRET) {
       return NextResponse.json({ error: "Wrong password" }, { status: 401 });
@@ -36,7 +36,13 @@ export async function POST(req: Request) {
       const straight = Number(bag.straight_count || 0);
       const caseCount = Number(bag.case_count || 0);
 
-      if (bottle > 0 || glass > 0 || trash > 0 || straight > 0 || caseCount > 0) {
+      if (
+        bottle > 0 ||
+        glass > 0 ||
+        trash > 0 ||
+        straight > 0 ||
+        caseCount > 0
+      ) {
         totalRows += 1;
       }
 
@@ -71,6 +77,7 @@ export async function POST(req: Request) {
         total_trash: totalTrash,
         total_straight: totalStraight,
         total_case: totalCase,
+        notes: notes || null,
       })
       .eq("id", sessionId);
 
