@@ -187,7 +187,7 @@ export default function StaffSchedulePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-[2rem] shadow-xl border p-8">
+        <div className="bg-white text-slate-900 rounded-[2rem] shadow-xl border p-8">
           <div className="flex justify-between items-end border-b pb-6 mb-6">
             <div>
               <h1 className="text-5xl font-black">Workers Bag Schedule</h1>
