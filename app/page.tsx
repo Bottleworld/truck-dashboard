@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+import { OWNER_COOKIE_NAME, isOwnerCookieValid } from "@/lib/siteOwner";
 import ManagerLogin from "./ManagerLogin";
 import SubscriptionPaywall from "./SubscriptionPaywall";
 import { getSubscriptionAccess } from "@/lib/subscriptionAccess";
@@ -5,6 +7,8 @@ import { getSubscriptionAccess } from "@/lib/subscriptionAccess";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const owner = isOwnerCookieValid((await cookies()).get(OWNER_COOKIE_NAME)?.value);
+  if (owner) return <ManagerLogin />;
   const access = await getSubscriptionAccess();
   if (access.active) return <ManagerLogin />;
 

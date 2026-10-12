@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MANAGER_COOKIE, verifyManagerSession } from "@/lib/managerAuth";
 import { isSubscriptionActive } from "@/lib/subscriptionAccess";
+import { OWNER_COOKIE_NAME, isOwnerCookieValid } from "@/lib/siteOwner";
 
 /**
  * A subscription is required for all protected pages and APIs.
@@ -17,10 +18,12 @@ export async function proxy(request: NextRequest) {
     path === "/api/subscription-status" ||
     path === "/api/manager-login" ||
     path === "/api/manager-session" ||
+    path === "/api/site-owner" ||
     path === "/api/manager-logout"
   ) return NextResponse.next();
 
-  if (!(await isSubscriptionActive())) {
+  const owner = isOwnerCookieValid(request.cookies.get(OWNER_COOKIE_NAME)?.value);
+  if (!owner && !(await isSubscriptionActive())) {
     if (path.startsWith("/api/")) {
       return NextResponse.json(
         { error: "Subscription required" },
@@ -37,7 +40,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const manager = verifyManagerSession(request.cookies.get(MANAGER_COOKIE)?.value);
-  if (!manager) {
+  if (!owner && !manager) {
     if (path.startsWith("/api/")) {
       return NextResponse.json(
         { error: "Manager login required" },

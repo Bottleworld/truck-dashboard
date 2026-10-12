@@ -24,6 +24,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({ trucks: 0, bags: 0, bottles: 0 });
   const [subscriptionDays, setSubscriptionDays] = useState<number | null>(null);
   const [subscriptionStatusError, setSubscriptionStatusError] = useState(false);
+  const [isSiteOwner, setIsSiteOwner] = useState(false);
 
   useEffect(() => {
     const loggedIn = localStorage.getItem("managerLoggedIn");
@@ -47,12 +48,15 @@ export default function DashboardPage() {
       try {
         const response = await fetch("/api/subscription-status", { cache: "no-store" });
         if (!response.ok) throw new Error("Subscription status unavailable");
-        const state: { active: boolean; daysRemaining: number | null } = await response.json();
+        const state: { active: boolean; ownerAuthorized?: boolean; daysRemaining: number | null } = await response.json();
         if (!mounted) return;
-        if (!state.active) {
-          router.replace("/");
+        if (!state.active && !state.ownerAuthorized) {
+          localStorage.removeItem("managerLoggedIn");
+          localStorage.removeItem("managerName");
+          window.location.replace("/");
           return;
         }
+        setIsSiteOwner(Boolean(state.ownerAuthorized));
         setSubscriptionDays(state.daysRemaining);
         setSubscriptionStatusError(false);
       } catch {
@@ -60,8 +64,17 @@ export default function DashboardPage() {
       }
     }
     void refreshSubscription();
-    const interval = setInterval(() => void refreshSubscription(), 60_000);
-    return () => { mounted = false; clearInterval(interval); };
+    const interval = setInterval(() => void refreshSubscription(), 15_000);
+    const onFocus = () => void refreshSubscription();
+    const onVisible = () => { if (document.visibilityState === "visible") void refreshSubscription(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [router]);
 
   async function fetchAll() {
@@ -170,7 +183,9 @@ export default function DashboardPage() {
               >
                 {subscriptionStatusError
                   ? "Subscription status temporarily unavailable"
-                  : subscriptionDays === null
+                  : isSiteOwner
+                    ? "● OWNER INSPECTION ACCESS"
+                    : subscriptionDays === null
                     ? "Checking subscription..."
                     : `● SUBSCRIPTION ACTIVE FOR ${subscriptionDays} ${subscriptionDays === 1 ? "DAY" : "DAYS"}`}
               </div>
