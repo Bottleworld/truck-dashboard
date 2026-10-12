@@ -2,8 +2,13 @@ import PaymentReturn from "./PaymentReturn";
 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ payment?: string }> }) {
   const { payment } = await searchParams;
-  const monthlyLink = "https://buy.stripe.com/dRmcN79Wh8FY5Rf2u714402";
-  const yearlyLink = "https://buy.stripe.com/8x24gB7O94pI5Rf7Or14403";
+  const sandbox = process.env.VERCEL_ENV !== "production" && process.env.STRIPE_SANDBOX_MODE === "true";
+  const monthlyLink = sandbox
+    ? "https://buy.stripe.com/test_eVqeVeah52c3gYfaO26oo00"
+    : "https://buy.stripe.com/dRmcN79Wh8FY5Rf2u714402";
+  const yearlyLink = sandbox
+    ? "https://buy.stripe.com/test_6oUdRagFtg2T9vNe0e6oo01"
+    : "https://buy.stripe.com/8x24gB7O94pI5Rf7Or14403";
 
   return (
     <main style={{
@@ -30,6 +35,11 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           Choose a plan to keep the truck dashboard, database storage, hosting, and system maintenance active.
         </p>
 
+        {sandbox && (
+          <p style={{ color: "#1d4ed8", padding: "12px", background: "#eff6ff", marginBottom: "20px" }}>
+            Stripe Sandbox — payments here are simulated. No real card will be charged.
+          </p>
+        )}
         {payment === "success" && <PaymentReturn />}
 
         <div style={{
