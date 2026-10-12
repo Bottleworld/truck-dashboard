@@ -16,7 +16,7 @@ function service() {
 
 function currentState(sub: Stripe.Subscription): AccessState {
   const end = sub.items.data.map(item => item.current_period_end).filter((time): time is number => typeof time === "number").sort((a,b) => b-a)[0];
-  const valid = (sub.status === "active" || sub.status === "trialing") && Boolean(end) && end * 1000 > Date.now();
+  const valid = sub.status === "active" && Boolean(end) && end * 1000 > Date.now();
   return {
     status: valid ? "active" : "inactive",
     subscriptionId: sub.id,
