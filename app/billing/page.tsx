@@ -1,3 +1,5 @@
+import PaymentReturn from "./PaymentReturn";
+
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ payment?: string }> }) {
   const { payment } = await searchParams;
   const monthlyLink = "https://buy.stripe.com/dRmcN79Wh8FY5Rf2u714402";
@@ -28,7 +30,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
           Choose a plan to keep the truck dashboard, database storage, hosting, and system maintenance active.
         </p>
 
-        {payment === "success" && <p style={{ background: "#eff6ff", padding: "12px", borderRadius: "10px", marginBottom: "16px" }}>Payment submitted. Stripe is confirming your subscription. Refresh this page shortly to open the dashboard.</p>}
+        {payment === "success" && <PaymentReturn />}
 
         <div style={{
           display: "grid",
