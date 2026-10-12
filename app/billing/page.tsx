@@ -1,6 +1,6 @@
 export default function BillingPage() {
-  const monthlyLink = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_LINK;
-  const yearlyLink = process.env.NEXT_PUBLIC_STRIPE_YEARLY_LINK;
+  const monthlyLink = "https://buy.stripe.com/dRmcN79Wh8FY5Rf2u714402";
+  const yearlyLink = "https://buy.stripe.com/8x24gB7O94pI5Rf7Or14403";
 
   return (
     <main style={{
@@ -39,7 +39,7 @@ export default function BillingPage() {
           }}>
             <h2>Monthly Plan</h2>
             <p style={{ fontSize: "34px", fontWeight: "bold", margin: "16px 0" }}>
-              $49<span style={{ fontSize: "16px", color: "#555" }}>/month</span>
+              $89.99<span style={{ fontSize: "16px", color: "#555" }}>/month</span>
             </p>
             <p style={{ color: "#555", minHeight: "48px" }}>
               Monthly database storage, hosting, maintenance, and dashboard access.
@@ -83,10 +83,10 @@ export default function BillingPage() {
 
             <h2>Yearly Plan</h2>
             <p style={{ fontSize: "34px", fontWeight: "bold", margin: "16px 0" }}>
-              $449<span style={{ fontSize: "16px", color: "#555" }}>/year</span>
+              $899<span style={{ fontSize: "16px", color: "#555" }}>/year</span>
             </p>
             <p style={{ color: "#555", minHeight: "48px" }}>
-              Save $139 per year compared to the monthly plan.
+              Save $180.88 per year compared to the monthly plan.
             </p>
             <a
               href={yearlyLink}
