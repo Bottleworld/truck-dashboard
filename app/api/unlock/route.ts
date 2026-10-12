@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
 
+/** Deprecated: users may not grant themselves dashboard access via a cookie. */
 export async function POST() {
-  const res = NextResponse.json({ success: true });
-
-  res.cookies.set("bw_gate", "open", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+  return NextResponse.json({ error: "This endpoint has been disabled" }, {
+    status: 410, headers: { "Cache-Control": "no-store" },
   });
-
-  return res;
 }
