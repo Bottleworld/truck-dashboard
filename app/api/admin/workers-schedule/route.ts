@@ -1,3 +1,4 @@
+import { validateStaffPin } from "@/lib/staffPin";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -23,10 +24,6 @@ function getNYDateInfo() {
   });
 
   return { nyDate, dayName };
-}
-
-function getCorrectPasscode() {
-  return process.env.STAFF_EDIT_PASSCODE || "0909";
 }
 
 async function ensureWorkers() {
@@ -100,9 +97,7 @@ export async function POST(req: Request) {
   try {
     const { passcode, workerId, bagCount, managerName } = await req.json();
 
-    const correctPasscode = getCorrectPasscode();
-
-    if (passcode !== correctPasscode) {
+    if (typeof passcode !== "string" || !validateStaffPin(passcode)) {
       return NextResponse.json({ error: "Wrong passcode" }, { status: 401 });
     }
 
