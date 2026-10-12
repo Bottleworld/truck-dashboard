@@ -147,13 +147,13 @@ export default function TruckInfoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-8">
       <div className="max-w-4xl mx-auto">
         <Link href="/dashboard" className="text-blue-600 text-lg">
           ← Back to Dashboard
         </Link>
 
-        <div className="bg-white rounded-3xl shadow-xl p-8 mt-6">
+        <div className="bg-white text-slate-900 rounded-3xl shadow-xl p-8 mt-6">
           <h1 className="text-5xl font-black mb-2">🚚 {truck.truck_name}</h1>
           <p className="text-gray-500 text-lg mb-8">Truck document details</p>
 
