@@ -1,59 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { MANAGER_COOKIE, verifyManagerSession } from "@/lib/managerAuth";
+import { isSubscriptionActive } from "@/lib/subscriptionAccess";
 
-/**
- * Shared installation subscription gate.
- * This is intentionally server-side: neither browser storage nor bw_gate cookies
- * are accepted as proof of payment.
- */
+/** Both the paid installation license and a signed manager session are required. */
 export async function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+  const path = request.nextUrl.pathname;
 
-  // These routes must remain accessible to subscribe and receive signed updates.
-  if (pathname === "/billing" || pathname.startsWith("/api/stripe-webhook")) {
+  // Keep these routes reachable before payment, and for Stripe notifications.
+  if (
+    path === "/billing" ||
+    path === "/api/stripe-webhook" ||
+    path === "/api/subscription-status" ||
+    path === "/api/manager-login" ||
+    path === "/api/manager-session" ||
+    path === "/api/manager-logout"
+  ) {
     return NextResponse.next();
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
-    return denied(request, "Subscription verification unavailable");
+  if (!(await isSubscriptionActive())) {
+    if (path.startsWith("/api/")) {
+      return NextResponse.json({ error: "Subscription required" }, { status: 402, headers: { "Cache-Control": "no-store" } });
+    }
+    const url = request.nextUrl.clone();
+    url.pathname = "/billing";
+    url.search = "";
+    return NextResponse.redirect(url);
   }
 
-  try {
-    const db = createClient(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data, error } = await db
-      .from("app_access")
-      .select("status,current_period_end,stripe_subscription_id")
-      .eq("id", 1)
-      .maybeSingle();
+  // The landing page displays the manager-login form when payment is current.
+  if (path === "/") return NextResponse.next();
 
-    if (error || !data) return denied(request, "Subscription verification unavailable");
-
-    const expiresAt = Date.parse(data.current_period_end ?? "");
-    const active =
-      data.status === "active" &&
-      Boolean(data.stripe_subscription_id) &&
-      Number.isFinite(expiresAt) &&
-      expiresAt > Date.now();
-
-    if (!active) return denied(request, "Subscription required");
-    return NextResponse.next();
-  } catch {
-    return denied(request, "Subscription verification unavailable");
+  const manager = verifyManagerSession(request.cookies.get(MANAGER_COOKIE)?.value);
+  if (!manager) {
+    if (path.startsWith("/api/")) {
+      return NextResponse.json({ error: "Manager login required" }, { status: 401, headers: { "Cache-Control": "no-store" } });
+    }
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "?session=expired";
+    return NextResponse.redirect(url);
   }
-}
 
-function denied(request: NextRequest, message: string) {
-  if (request.nextUrl.pathname.startsWith("/api/")) {
-    return NextResponse.json({ error: message }, { status: 402 });
-  }
-  const target = request.nextUrl.clone();
-  target.pathname = "/billing";
-  target.search = "";
-  return NextResponse.redirect(target);
+  return NextResponse.next();
 }
 
 export const config = {
