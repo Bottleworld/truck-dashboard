@@ -4,18 +4,22 @@ export type SubscriptionAccess = {
   active: boolean;
   hadSubscription: boolean;
   available: boolean;
+  daysRemaining: number | null;
+  currentPeriodEnd: string | null;
 };
 
-/**
- * Isolated Stripe sandbox state for the subscription preview.
- * A database failure must never grant pre-launch access.
- */
+/** Read verified subscription status, never from browser storage or a user-supplied cookie. */
 export async function getSubscriptionAccess(): Promise<SubscriptionAccess> {
+  const unavailable: SubscriptionAccess = {
+    active: false, hadSubscription: false, available: false,
+    daysRemaining: null, currentPeriodEnd: null,
+  };
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return { active: false, hadSubscription: false, available: false };
+  if (!url || !key) return unavailable;
 
   const sandbox = process.env.VERCEL_ENV !== "production" && process.env.STRIPE_SANDBOX_MODE === "true";
+
   try {
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data, error } = await db
@@ -24,16 +28,22 @@ export async function getSubscriptionAccess(): Promise<SubscriptionAccess> {
       .eq("id", 1)
       .maybeSingle();
 
-    if (error || !data) return { active: false, hadSubscription: false, available: false };
-    const end = Date.parse(data.current_period_end ?? "");
+    if (error || !data) return unavailable;
+
+    const expiration = Date.parse(data.current_period_end ?? "");
     const hadSubscription = Boolean(data.stripe_subscription_id);
+    const active = data.status === "active" && hadSubscription &&
+      Number.isFinite(expiration) && expiration > Date.now();
+
     return {
-      active: data.status === "active" && hadSubscription && Number.isFinite(end) && end > Date.now(),
+      active,
       hadSubscription,
       available: true,
+      daysRemaining: active ? Math.ceil((expiration - Date.now()) / 86_400_000) : null,
+      currentPeriodEnd: active ? new Date(expiration).toISOString() : null,
     };
   } catch {
-    return { active: false, hadSubscription: false, available: false };
+    return unavailable;
   }
 }
 
