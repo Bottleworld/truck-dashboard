@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const [managerName, setManagerName] = useState("");
   const [trucks, setTrucks] = useState<Truck[]>([]);
   const [stats, setStats] = useState({ trucks: 0, bags: 0, bottles: 0 });
+  const [subscriptionDays, setSubscriptionDays] = useState<number | null>(null);
+  const [subscriptionStatusError, setSubscriptionStatusError] = useState(false);
 
   useEffect(() => {
     const loggedIn = localStorage.getItem("managerLoggedIn");
@@ -37,6 +39,29 @@ export default function DashboardPage() {
     fetchAll();
     const interval = setInterval(fetchAll, 5000);
     return () => clearInterval(interval);
+  }, [router]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function refreshSubscription() {
+      try {
+        const response = await fetch("/api/subscription-status", { cache: "no-store" });
+        if (!response.ok) throw new Error("Subscription status unavailable");
+        const state: { active: boolean; daysRemaining: number | null } = await response.json();
+        if (!mounted) return;
+        if (!state.active) {
+          router.replace("/");
+          return;
+        }
+        setSubscriptionDays(state.daysRemaining);
+        setSubscriptionStatusError(false);
+      } catch {
+        if (mounted) setSubscriptionStatusError(true);
+      }
+    }
+    void refreshSubscription();
+    const interval = setInterval(() => void refreshSubscription(), 60_000);
+    return () => { mounted = false; clearInterval(interval); };
   }, [router]);
 
   async function fetchAll() {
@@ -138,8 +163,16 @@ export default function DashboardPage() {
         <div className="rounded-[2rem] bg-white/80 backdrop-blur border border-white shadow-xl p-8 mb-8">
           <div className="flex justify-between items-start gap-6">
             <div>
-              <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-bold mb-4">
-                ● LIVE SYSTEM
+              <div
+                role="status"
+                aria-live="polite"
+                className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full text-sm font-bold mb-4"
+              >
+                {subscriptionStatusError
+                  ? "Subscription status temporarily unavailable"
+                  : subscriptionDays === null
+                    ? "Checking subscription..."
+                    : `● SUBSCRIPTION ACTIVE FOR ${subscriptionDays} ${subscriptionDays === 1 ? "DAY" : "DAYS"}`}
               </div>
 
               <h1 className="text-5xl font-black tracking-tight">
