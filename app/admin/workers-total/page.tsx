@@ -17,8 +17,6 @@ type WeeklyRow = {
   total: number;
 };
 
-const STAFF_PASSCODE = "0909";
-
 export default function WorkersTotalPage() {
   const [weekStart, setWeekStart] = useState("");
   const [weekEnd, setWeekEnd] = useState("");
@@ -52,17 +50,24 @@ export default function WorkersTotalPage() {
     setLoading(false);
   }
 
-  function startEdit() {
+  async function startEdit() {
     const password = prompt("Enter 4 digit passcode:");
     if (!password) return;
-
-    if (password !== STAFF_PASSCODE) {
-      alert("Wrong password");
-      return;
+    try {
+      const response = await fetch("/api/staff-pin", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: password }),
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        alert(result.error || "Wrong PIN");
+        return;
+      }
+      setAdminPassword(password);
+      setEditMode(true);
+    } catch {
+      alert("Could not verify PIN. Try again.");
     }
-
-    setAdminPassword(password);
-    setEditMode(true);
   }
 
   function lockEdit() {
@@ -119,7 +124,7 @@ export default function WorkersTotalPage() {
   }
 
   async function saveAllChanges() {
-    if (adminPassword !== STAFF_PASSCODE) {
+    if (!adminPassword) {
       alert("Wrong password. Press Admin Edit again.");
       setEditMode(false);
       setAdminPassword("");
@@ -149,7 +154,7 @@ export default function WorkersTotalPage() {
   const grandTotal = rows.reduce((sum, row) => sum + Number(row.total || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <Link href="/admin/dashboard" className="text-blue-600 text-lg">
@@ -186,7 +191,7 @@ export default function WorkersTotalPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl p-8 mt-6">
+        <div className="bg-white text-slate-900 rounded-3xl shadow-xl p-8 mt-6">
           <div className="flex justify-between items-end border-b pb-6 mb-8">
             <div>
               <h1 className="text-5xl font-black">Workers Total Schedule</h1>

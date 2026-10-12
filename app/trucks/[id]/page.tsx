@@ -192,8 +192,8 @@ export default function TruckPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-3 sm:p-6 lg:p-8">
-      <div className="w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-3 sm:p-6 lg:p-8">
+      <div className="w-full max-w-6xl mx-auto bg-white text-slate-900 rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
         <Link href="/dashboard" className="text-blue-600 text-base sm:text-lg">
           ← Back to Dashboard
         </Link>

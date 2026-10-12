@@ -60,7 +60,7 @@ export default function AdminTrucksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-10">
       <div className="mb-6 flex justify-between items-center">
         <Link href="/admin/dashboard" className="text-blue-600 text-lg">
           ← Back to Admin
@@ -71,7 +71,7 @@ export default function AdminTrucksPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-5xl mx-auto">
+      <div className="bg-white text-slate-900 rounded-2xl shadow-lg p-8 max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">🚚 Manage Trucks</h1>
 

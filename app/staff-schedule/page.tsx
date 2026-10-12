@@ -18,8 +18,6 @@ type Entry = {
   created_at: string;
 };
 
-const STAFF_PASSCODE = "0909";
-
 export default function StaffSchedulePage() {
   const [date, setDate] = useState("");
   const [dayName, setDayName] = useState("");
@@ -51,17 +49,25 @@ export default function StaffSchedulePage() {
     setEntries(data.entries || []);
   }
 
-  function startEdit() {
+  async function startEdit() {
     const code = prompt("Enter 4 digit passcode:");
     if (!code) return;
 
-    if (code !== STAFF_PASSCODE) {
-      alert("Wrong passcode");
-      return;
+    try {
+      const response = await fetch("/api/staff-pin", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: code }),
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        alert(result.error || "Wrong PIN");
+        return;
+      }
+      setPasscode(code);
+      setEditMode(true);
+    } catch {
+      alert("Could not verify PIN. Try again.");
     }
-
-    setPasscode(code);
-    setEditMode(true);
   }
 
   function lockSchedule() {
@@ -93,7 +99,7 @@ export default function StaffSchedulePage() {
       return;
     }
 
-    if (passcode !== STAFF_PASSCODE) {
+    if (!passcode) {
       alert("Wrong passcode. Press EDIT again.");
       setEditMode(false);
       setPasscode("");
@@ -181,7 +187,7 @@ export default function StaffSchedulePage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-[2rem] shadow-xl border p-8">
+        <div className="bg-white text-slate-900 rounded-[2rem] shadow-xl border p-8">
           <div className="flex justify-between items-end border-b pb-6 mb-6">
             <div>
               <h1 className="text-5xl font-black">Workers Bag Schedule</h1>

@@ -47,12 +47,12 @@ export default function NewTruckPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-10">
       <Link href="/admin/trucks" className="text-blue-600 text-lg">
         ← Back to Trucks
       </Link>
 
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-3xl mx-auto mt-6">
+      <div className="bg-white text-slate-900 rounded-2xl shadow-lg p-8 max-w-3xl mx-auto mt-6">
         <h1 className="text-4xl font-bold mb-8">Add New Truck</h1>
 
         <div className="space-y-5">

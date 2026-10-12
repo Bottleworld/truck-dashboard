@@ -304,7 +304,7 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-8">
       <div className="no-print mb-6 flex gap-4 items-center flex-wrap">
         <Link href="/history" className="text-blue-600 text-lg">
           ← Back to History
@@ -342,7 +342,7 @@ export default function ReportPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-5xl mx-auto">
+      <div className="bg-white text-slate-900 rounded-2xl shadow-lg p-8 max-w-5xl mx-auto">
         <div className="border-b pb-6 mb-6">
           <h1 className="text-4xl font-bold">BOTTLE WORLD</h1>
           <p className="text-gray-600 mt-2">Receiving Report</p>

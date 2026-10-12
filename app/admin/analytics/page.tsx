@@ -153,7 +153,7 @@ export default function AdminAnalyticsPage() {
     .slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-8">
       <div className="max-w-7xl mx-auto">
         <Link href="/admin/dashboard" className="text-blue-600 text-lg">
           ← Back to Admin
@@ -165,7 +165,7 @@ export default function AdminAnalyticsPage() {
           <p className="text-xl">Loading...</p>
         ) : (
           <>
-            <div className="bg-white rounded-2xl shadow p-6 mb-8">
+            <div className="bg-white text-slate-900 rounded-2xl shadow p-6 mb-8">
               <h2 className="text-2xl font-bold mb-4">
                 Daily Total Activity
               </h2>
@@ -196,7 +196,7 @@ export default function AdminAnalyticsPage() {
             </div>
 
             <div className="grid grid-cols-3 gap-6 mb-8">
-              <div className="bg-white rounded-2xl shadow p-6">
+              <div className="bg-white text-slate-900 rounded-2xl shadow p-6">
                 <p className="text-gray-500">Today</p>
                 <p className="text-3xl font-bold mt-2">
                   Bottles: {sum(todaySessions, "total_bottles")}
@@ -210,7 +210,7 @@ export default function AdminAnalyticsPage() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl shadow p-6">
+              <div className="bg-white text-slate-900 rounded-2xl shadow p-6">
                 <p className="text-gray-500">Last 7 Days</p>
                 <p className="text-3xl font-bold mt-2">
                   Bottles: {sum(weekSessions, "total_bottles")}
@@ -224,7 +224,7 @@ export default function AdminAnalyticsPage() {
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl shadow p-6">
+              <div className="bg-white text-slate-900 rounded-2xl shadow p-6">
                 <p className="text-gray-500">Last 30 Days</p>
                 <p className="text-3xl font-bold mt-2">
                   Bottles: {sum(monthSessions, "total_bottles")}
@@ -239,7 +239,7 @@ export default function AdminAnalyticsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow p-6 mb-8">
+            <div className="bg-white text-slate-900 rounded-2xl shadow p-6 mb-8">
               <h2 className="text-2xl font-bold mb-4">🏆 Top Trucks</h2>
 
               {topTrucks.length === 0 ? (
@@ -275,7 +275,7 @@ export default function AdminAnalyticsPage() {
               )}
             </div>
 
-            <div className="bg-white rounded-2xl shadow p-6">
+            <div className="bg-white text-slate-900 rounded-2xl shadow p-6">
               <h2 className="text-2xl font-bold mb-4">Recent Reports</h2>
 
               {sessions.slice(0, 10).map((session) => (
