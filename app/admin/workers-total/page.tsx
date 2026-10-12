@@ -154,7 +154,7 @@ export default function WorkersTotalPage() {
   const grandTotal = rows.reduce((sum, row) => sum + Number(row.total || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <Link href="/admin/dashboard" className="text-blue-600 text-lg">
@@ -191,7 +191,7 @@ export default function WorkersTotalPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl p-8 mt-6">
+        <div className="bg-white text-slate-900 rounded-3xl shadow-xl p-8 mt-6">
           <div className="flex justify-between items-end border-b pb-6 mb-8">
             <div>
               <h1 className="text-5xl font-black">Workers Total Schedule</h1>
