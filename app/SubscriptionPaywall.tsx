@@ -1,3 +1,5 @@
+import OwnerUnlockButton from "./OwnerUnlockButton";
+
 type Props = {
   available: boolean;
   monthlyLink: string;
@@ -7,7 +9,7 @@ type Props = {
 
 export default function SubscriptionPaywall({ available, monthlyLink, yearlyLink, sandbox }: Props) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-100 text-slate-900" style={{ colorScheme: "light" }}>
+    <main id="subscription-paywall" className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-100 text-slate-900" style={{ colorScheme: "light" }}>
       {/* The visible login card is a non-interactive preview. Access is gated on the server. */}
       <div aria-hidden="true" className="pointer-events-none select-none min-h-screen flex items-center justify-center p-6 blur-[3px] opacity-40">
         <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl border border-slate-200">
@@ -28,7 +30,7 @@ export default function SubscriptionPaywall({ available, monthlyLink, yearlyLink
           aria-describedby="subscription-description"
           className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-9 text-slate-900"
         >
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-700 text-3xl" aria-hidden="true">🔒</div>
+          <OwnerUnlockButton />
           <p className="text-center text-blue-700 font-black tracking-widest text-xs uppercase mb-3">
             {available ? "Subscription required" : "Subscription verification unavailable"}
           </p>
