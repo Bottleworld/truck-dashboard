@@ -6,14 +6,16 @@ import { useRouter } from "next/navigation";
 export default function AdminDashboardPage() {
   const router = useRouter();
 
-  function logout() {
+  async function logout() {
+    try { await fetch("/api/admin-session", { method: "DELETE" }); } catch { /* Local state still clears. */ }
     localStorage.removeItem("admin");
     router.push("/admin");
+    router.refresh();
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="bg-white rounded-3xl shadow-lg p-8 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gray-100 p-8 text-slate-900">
+      <div className="bg-white text-slate-900 rounded-3xl shadow-lg p-8 max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold mb-6">🛠 Admin Panel</h1>
 
         <button
