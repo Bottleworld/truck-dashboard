@@ -7,7 +7,7 @@ export async function isSubscriptionActive(): Promise<boolean> {
   try {
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data, error } = await db
-      .from("app_access")
+      .from(process.env.VERCEL_ENV !== "production" && process.env.STRIPE_SANDBOX_MODE === "true" ? "app_access_sandbox" : "app_access")
       .select("status,stripe_subscription_id,current_period_end")
       .eq("id", 1)
       .maybeSingle();
