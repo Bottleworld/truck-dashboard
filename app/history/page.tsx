@@ -76,13 +76,13 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 text-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
         <Link href="/dashboard" className="text-blue-600 text-lg">
           ← Back to Dashboard
         </Link>
 
-        <h1 className="text-4xl font-bold mt-6 mb-6">History</h1>
+        <h1 className="text-4xl font-bold text-slate-900 mt-6 mb-6">History</h1>
 
         {sessions.length === 0 ? (
           <p className="text-xl text-gray-500">No history yet.</p>
@@ -91,11 +91,11 @@ export default function HistoryPage() {
             {sessions.map((session) => (
               <div
                 key={session.id}
-                className="bg-white p-6 rounded-2xl shadow"
+                className="bg-white text-slate-900 p-6 rounded-2xl shadow"
               >
                 <div className="flex justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold">
+                    <h2 className="text-2xl font-bold text-slate-900">
                       {session.is_custom_truck
                         ? `Customer: ${session.customer_name || "N/A"}`
                         : `Truck #${session.truck_id}`}
@@ -123,7 +123,7 @@ export default function HistoryPage() {
                   </div>
 
                   <div className="text-right">
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-slate-500 text-sm">
                       {new Date(session.created_at).toLocaleString()}
                     </p>
                   </div>
@@ -132,35 +132,35 @@ export default function HistoryPage() {
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-5">
                   <div className="bg-blue-50 p-4 rounded-xl text-center">
                     <p className="text-blue-700">Bottles</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-slate-900">
                       {session.total_bottles || 0}
                     </p>
                   </div>
 
                   <div className="bg-amber-50 p-4 rounded-xl text-center">
                     <p className="text-amber-700">Glass</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-slate-900">
                       {session.total_glass || 0}
                     </p>
                   </div>
 
                   <div className="bg-red-50 p-4 rounded-xl text-center">
                     <p className="text-red-700">GARBAGE</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-slate-900">
                       {session.total_trash || 0}
                     </p>
                   </div>
 
                   <div className="bg-green-50 p-4 rounded-xl text-center">
                     <p className="text-green-700">STRAIGHT</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-slate-900">
                       {session.total_straight || 0}
                     </p>
                   </div>
 
                   <div className="bg-purple-50 p-4 rounded-xl text-center">
                     <p className="text-purple-700">Case</p>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-slate-900">
                       {session.total_case || 0}
                     </p>
                   </div>
