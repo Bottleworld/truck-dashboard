@@ -1,3 +1,4 @@
+import { ADMIN_COOKIE, verifyAdminCookie } from "@/lib/adminSession";
 import { NextRequest, NextResponse } from "next/server";
 import { MANAGER_COOKIE, verifyManagerSession } from "@/lib/managerAuth";
 import { isSubscriptionActive } from "@/lib/subscriptionAccess";
@@ -53,6 +54,13 @@ export async function proxy(request: NextRequest) {
     const response = NextResponse.redirect(url);
     response.headers.set("Cache-Control", "no-store");
     return response;
+  }
+
+  if (path.startsWith("/admin/") && !verifyAdminCookie(request.cookies.get(ADMIN_COOKIE)?.value)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin";
+    url.search = "";
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
