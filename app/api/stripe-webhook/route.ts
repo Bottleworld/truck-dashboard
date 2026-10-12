@@ -29,9 +29,9 @@ function currentState(sub: Stripe.Subscription): AccessState {
 export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
   if (!signature) return NextResponse.json({ error: "Missing signature" }, { status: 400 });
-  let stripe: Stripe;
-  let db: ReturnType<typeof createClient>;
-  try { ({ stripe, db } = service()); } catch { return NextResponse.json({ error: "Not configured" }, { status: 500 }); }
+  let services: ReturnType<typeof service>;
+  try { services = service(); } catch { return NextResponse.json({ error: "Not configured" }, { status: 500 }); }
+  const { stripe, db } = services;
 
   let event: Stripe.Event;
   try {
