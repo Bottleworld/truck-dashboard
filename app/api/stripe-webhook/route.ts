@@ -4,6 +4,12 @@ import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
+// Only Bottle World's current recurring plans may unlock this dashboard.
+const BOTTLE_WORLD_PRICES = new Set([
+  "price_1UPc10PwTBxi2GE8i5Y1S8dK", // $89.99/month
+  "price_1UPc12PwTBxi2GE89Y3TVMux", // $899/year
+]);
+
 type AccessState = { status: "active" | "inactive"; subscriptionId: string; customerId: string; periodEnd: string | null; plan: string | null };
 
 function service() {
@@ -58,6 +64,9 @@ export async function POST(req: Request) {
 
     if (!subscriptionId) return NextResponse.json({ received: true });
     const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    if (!sub.items.data.some((item) => BOTTLE_WORLD_PRICES.has(item.price.id))) {
+      return NextResponse.json({ received: true });
+    }
     const state = currentState(sub);
 
     // Shared single-installation license: avoid unrelated subscriptions overriding current access.
