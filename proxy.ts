@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MANAGER_COOKIE, verifyManagerSession } from "@/lib/managerAuth";
-import { isSubscriptionActive } from "@/lib/subscriptionAccess";
+import { getSubscriptionAccess } from "@/lib/subscriptionAccess";
 
-/** Both the paid installation license and a signed manager session are required. */
+/** Company-wide subscription + server-signed manager identity. */
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Keep these routes reachable before payment, and for Stripe notifications.
+  // Stripe notifications and customer checkout must be accessible without a session.
   if (
     path === "/billing" ||
     path === "/api/stripe-webhook" ||
@@ -15,14 +15,21 @@ export async function proxy(request: NextRequest) {
     path === "/api/manager-login" ||
     path === "/api/manager-session" ||
     path === "/api/manager-logout"
-  ) {
-    return NextResponse.next();
-  }
+  ) return NextResponse.next();
 
-  if (!(await isSubscriptionActive())) {
-    if (path.startsWith("/api/")) {
-      return NextResponse.json({ error: "Subscription required" }, { status: 402, headers: { "Cache-Control": "no-store" } });
-    }
+  const access = await getSubscriptionAccess();
+  // Prelaunch/demo use is available to existing managers WITHOUT the owner paying.
+  // It is one-way: once any real subscription has existed, cancellation cannot
+  // reactivate free access. Missing database data always denies access.
+  const prelaunch = process.env.VERCEL_ENV === "production" &&
+    process.env.SUBSCRIPTION_PRELAUNCH_MODE === "true" &&
+    access.available && !access.hadSubscription;
+
+  if (!access.active && !prelaunch) {
+    if (path.startsWith("/api/")) return NextResponse.json(
+      { error: "Subscription required" },
+      { status: 402, headers: { "Cache-Control": "no-store" } }
+    );
     const url = request.nextUrl.clone();
     url.pathname = "/billing";
     url.search = "";
@@ -31,14 +38,14 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // The landing page displays the manager-login form when payment is current.
   if (path === "/") return NextResponse.next();
 
   const manager = verifyManagerSession(request.cookies.get(MANAGER_COOKIE)?.value);
   if (!manager) {
-    if (path.startsWith("/api/")) {
-      return NextResponse.json({ error: "Manager login required" }, { status: 401, headers: { "Cache-Control": "no-store" } });
-    }
+    if (path.startsWith("/api/")) return NextResponse.json(
+      { error: "Manager login required" },
+      { status: 401, headers: { "Cache-Control": "no-store" } }
+    );
     const url = request.nextUrl.clone();
     url.pathname = "/";
     url.search = "?session=expired";
@@ -46,7 +53,6 @@ export async function proxy(request: NextRequest) {
     response.headers.set("Cache-Control", "no-store");
     return response;
   }
-
   return NextResponse.next();
 }
 
