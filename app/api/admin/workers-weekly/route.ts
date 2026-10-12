@@ -1,3 +1,4 @@
+import { validateStaffPin } from "@/lib/staffPin";
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -56,10 +57,6 @@ function getWeekInfo() {
     weekEnd: dayDates[5].date,
     dayDates,
   };
-}
-
-function getStaffPasscode() {
-  return process.env.STAFF_EDIT_PASSCODE || "0909";
 }
 
 export async function GET() {
@@ -133,7 +130,7 @@ export async function POST(req: Request) {
     const { password, workerId, workDate, dayName, bagCount, managerName } =
       await req.json();
 
-    if (password !== getStaffPasscode()) {
+    if (typeof password !== "string" || !validateStaffPin(password)) {
       return NextResponse.json({ error: "Wrong password" }, { status: 401 });
     }
 
