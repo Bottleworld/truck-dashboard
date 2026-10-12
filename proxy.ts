@@ -10,6 +10,7 @@ export async function proxy(request: NextRequest) {
   if (
     path === "/billing" ||
     path === "/api/stripe-webhook" ||
+    path === "/api/stripe-sandbox-webhook" ||
     path === "/api/subscription-status" ||
     path === "/api/manager-login" ||
     path === "/api/manager-session" ||
