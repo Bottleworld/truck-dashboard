@@ -73,7 +73,8 @@ export default function DashboardPage() {
     setTrucks(data || []);
   }
 
-  function logout() {
+  async function logout() {
+    try { await fetch("/api/manager-logout", { method: "POST" }); } catch { /* Clear local state regardless. */ }
     localStorage.removeItem("managerLoggedIn");
     localStorage.removeItem("managerName");
     router.push("/");
