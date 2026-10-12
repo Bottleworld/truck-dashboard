@@ -4,150 +4,90 @@ import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+// Only Bottle World's current recurring plans may unlock this dashboard.
+const BOTTLE_WORLD_PRICES = new Set([
+  "price_1UPc10PwTBxi2GE8i5Y1S8dK", // $89.99/month
+  "price_1UPc12PwTBxi2GE89Y3TVMux", // $899/year
+]);
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.SUPABASE_SERVICE_ROLE_KEY as string
-);
+type AccessState = { status: "active" | "inactive"; subscriptionId: string; customerId: string; periodEnd: string | null; plan: string | null };
 
-type AccessStatus = "active" | "inactive";
-
-async function updateAccess({
-  status,
-  subscriptionId,
-  customerId,
-  currentPeriodEnd,
-  planType,
-}: {
-  status: AccessStatus;
-  subscriptionId?: string | null;
-  customerId?: string | null;
-  currentPeriodEnd?: number | null;
-  planType?: string | null;
-}) {
-  const { error } = await supabaseAdmin
-    .from("app_access")
-    .update({
-      status,
-      stripe_subscription_id: subscriptionId || null,
-      stripe_customer_id: customerId || null,
-      current_period_end: currentPeriodEnd
-        ? new Date(currentPeriodEnd * 1000).toISOString()
-        : null,
-      plan_type: planType || null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", 1);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+function service() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  const dbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const dbKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key || !dbUrl || !dbKey || !process.env.STRIPE_WEBHOOK_SECRET) throw new Error("Stripe integration not configured");
+  return { stripe: new Stripe(key), db: createClient(dbUrl, dbKey, { auth: { persistSession: false } }) };
 }
 
-function getCurrentPeriodEnd(subscription: Stripe.Subscription): number | null {
-  return subscription.items.data[0]?.current_period_end ?? null;
-}
-
-function getPlanType(subscription: Stripe.Subscription): string | null {
-  return subscription.items.data[0]?.price?.recurring?.interval ?? null;
+function currentState(sub: Stripe.Subscription): AccessState {
+  const end = sub.items.data.map(item => item.current_period_end).filter((time): time is number => typeof time === "number").sort((a,b) => b-a)[0];
+  const valid = sub.status === "active" && Boolean(end) && end * 1000 > Date.now();
+  return {
+    status: valid ? "active" : "inactive",
+    subscriptionId: sub.id,
+    customerId: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+    periodEnd: end ? new Date(end * 1000).toISOString() : null,
+    plan: sub.items.data[0]?.price.recurring?.interval ?? null,
+  };
 }
 
 export async function POST(req: Request) {
-  const body = await req.text();
   const signature = req.headers.get("stripe-signature");
-
-  if (!signature) {
-    return NextResponse.json(
-      { error: "Missing stripe signature" },
-      { status: 400 }
-    );
-  }
+  if (!signature) return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+  let services: ReturnType<typeof service>;
+  try { services = service(); } catch { return NextResponse.json({ error: "Not configured" }, { status: 500 }); }
+  const { stripe, db } = services;
 
   let event: Stripe.Event;
-
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET as string
-    );
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown webhook error";
-
-    return NextResponse.json(
-      { error: `Webhook signature verification failed: ${message}` },
-      { status: 400 }
-    );
+    event = stripe.webhooks.constructEvent(await req.text(), signature, process.env.STRIPE_WEBHOOK_SECRET!);
+  } catch {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
   try {
+    let subscriptionId: string | null = null;
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-
-      if (session.subscription) {
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        );
-
-        await updateAccess({
-          status: "active",
-          subscriptionId: subscription.id,
-          customerId: subscription.customer as string,
-          currentPeriodEnd: getCurrentPeriodEnd(subscription),
-          planType: getPlanType(subscription),
-        });
+      if (session.mode === "subscription" && session.payment_status === "paid") {
+        subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id ?? null;
       }
-    }
-
-    if (event.type === "invoice.payment_succeeded") {
+    } else if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated" || event.type === "customer.subscription.deleted") {
+      subscriptionId = (event.data.object as Stripe.Subscription).id;
+    } else if (event.type === "invoice.paid" || event.type === "invoice.payment_failed") {
       const invoice = event.data.object as Stripe.Invoice;
-      const invoiceData = invoice as any;
-
-      if (invoiceData.subscription) {
-        const subscription = await stripe.subscriptions.retrieve(
-          invoiceData.subscription as string
-        );
-
-        await updateAccess({
-          status: "active",
-          subscriptionId: subscription.id,
-          customerId: subscription.customer as string,
-          currentPeriodEnd: getCurrentPeriodEnd(subscription),
-          planType: getPlanType(subscription),
-        });
-      }
+      // Modern Stripe invoices store their subscription association in parent.
+      const parent = invoice.parent?.subscription_details?.subscription;
+      subscriptionId = typeof parent === "string" ? parent : parent?.id ?? null;
     }
 
-    if (event.type === "invoice.payment_failed") {
-      const invoice = event.data.object as Stripe.Invoice;
-      const invoiceData = invoice as any;
-
-      await updateAccess({
-        status: "inactive",
-        subscriptionId: invoiceData.subscription || null,
-        customerId: invoiceData.customer || null,
-        currentPeriodEnd: null,
-        planType: null,
-      });
+    if (!subscriptionId) return NextResponse.json({ received: true });
+    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    if (!sub.items.data.some((item) => BOTTLE_WORLD_PRICES.has(item.price.id))) {
+      return NextResponse.json({ received: true });
     }
+    const state = currentState(sub);
 
-    if (event.type === "customer.subscription.deleted") {
-      const subscription = event.data.object as Stripe.Subscription;
-
-      await updateAccess({
-        status: "inactive",
-        subscriptionId: subscription.id,
-        customerId: subscription.customer as string,
-        currentPeriodEnd: null,
-        planType: null,
-      });
+    // Shared single-installation license: avoid unrelated subscriptions overriding current access.
+    const { data: existing, error: readError } = await db.from("app_access").select("stripe_subscription_id").eq("id", 1).single();
+    if (readError) throw readError;
+    if (existing.stripe_subscription_id && existing.stripe_subscription_id !== subscriptionId) {
+      // A new fully paid subscription may replace the old one; never let an unrelated cancellation revoke access.
+      if (state.status !== "active") return NextResponse.json({ received: true });
     }
+    const { error } = await db.from("app_access").update({
+      status: state.status,
+      stripe_subscription_id: state.subscriptionId,
+      stripe_customer_id: state.customerId,
+      current_period_end: state.periodEnd,
+      plan_type: state.plan,
+      updated_at: new Date().toISOString(),
+    }).eq("id", 1);
+    if (error) throw error;
 
     return NextResponse.json({ received: true });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown server error";
-
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: "Unable to synchronize subscription" }, { status: 500 });
   }
 }
