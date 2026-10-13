@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkLoginRateLimit } from "@/lib/loginThrottle";
 import { ADMIN_COOKIE, ADMIN_SESSION_SECONDS, createAdminCookie, verifyAdminCookie, verifyAdminPassword } from "@/lib/adminSession";
 
 export const runtime = "nodejs";
@@ -15,6 +16,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (Number(request.headers.get("content-length") || 0) > 1024)
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  const limit = await checkLoginRateLimit(request, "admin", 6);
+  if (limit === "unavailable") return NextResponse.json({ error: "Login temporarily unavailable" }, { status: 503 });
+  if (limit === "limited") return NextResponse.json({ error: "Too many attempts. Retry in 15 minutes." }, { status: 429 });
   let password: unknown;
   try { password = (await request.json()).password; }
   catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
