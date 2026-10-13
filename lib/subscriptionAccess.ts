@@ -42,6 +42,9 @@ function validPaidSubscription(sub: Stripe.Subscription): boolean {
  */
 async function reconcileLiveSubscription(db: SupabaseClient, row: AccessRow): Promise<AccessRow> {
   if (process.env.VERCEL_ENV !== "production") return row;
+  // Keep verified Stripe webhook updates authoritative. This optional fallback is
+  // enabled only after the independent live Stripe API key has been validated.
+  if (process.env.STRIPE_API_RECONCILIATION_ENABLED !== "true") return row;
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) {
     await db.from("subscription_sync_health").update({ last_attempt_at: new Date().toISOString(), error_category: "stripe_key_missing" }).eq("id", 1);
