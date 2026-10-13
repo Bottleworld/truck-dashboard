@@ -209,6 +209,14 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex gap-3 flex-wrap justify-end">
+              {isSiteOwner && (
+                <Link
+                  href="/owner/devices"
+                  className="bg-blue-600 text-white px-6 py-4 rounded-2xl text-lg font-bold shadow hover:bg-blue-700 transition"
+                >
+                  📊 Device Activity
+                </Link>
+              )}
               <Link
                 href="/history"
                 className="bg-slate-900 text-white px-6 py-4 rounded-2xl text-lg font-bold shadow hover:bg-slate-700 transition"

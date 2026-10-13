@@ -17,6 +17,7 @@ export async function proxy(request: NextRequest) {
     path === "/api/stripe-webhook" ||
     path === "/api/stripe-sandbox-webhook" ||
     path === "/api/subscription-status" ||
+    path === "/api/device-ping" ||
     path === "/api/manager-login" ||
     path === "/api/manager-session" ||
     path === "/api/site-owner" ||
@@ -24,6 +25,17 @@ export async function proxy(request: NextRequest) {
   ) return NextResponse.next();
 
   const owner = isOwnerCookieValid(request.cookies.get(OWNER_COOKIE_NAME)?.value);
+  if (path.startsWith("/owner/") && !owner) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+    return NextResponse.redirect(url);
+  }
+
+  if (path.startsWith("/api/owner/") && !owner) {
+    return NextResponse.json({ error: "Owner access required" }, { status: 403 });
+  }
+
   if (!owner && !(await isSubscriptionActive())) {
     if (path.startsWith("/api/")) {
       return NextResponse.json(
