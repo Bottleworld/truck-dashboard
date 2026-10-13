@@ -43,7 +43,10 @@ function validPaidSubscription(sub: Stripe.Subscription): boolean {
 async function reconcileLiveSubscription(db: SupabaseClient, row: AccessRow): Promise<AccessRow> {
   if (process.env.VERCEL_ENV !== "production") return row;
   const stripeKey = process.env.STRIPE_SECRET_KEY;
-  if (!stripeKey) return row;
+  if (!stripeKey) {
+    await db.from("subscription_sync_health").update({ last_attempt_at: new Date().toISOString(), error_category: "stripe_key_missing" }).eq("id", 1);
+    return row;
+  }
 
   const previousCheck = Date.parse(row.updated_at ?? "");
   if (Number.isFinite(previousCheck) && Date.now() - previousCheck < REFRESH_AFTER_MS) return row;
@@ -82,9 +85,23 @@ async function reconcileLiveSubscription(db: SupabaseClient, row: AccessRow): Pr
     };
 
     const { error } = await db.from("app_access").update(next).eq("id", 1);
-    if (error) return row;
+    if (error) {
+      await db.from("subscription_sync_health").update({
+        last_attempt_at: new Date().toISOString(), error_category: "database_update_failed",
+      }).eq("id", 1);
+      return row;
+    }
+    await db.from("subscription_sync_health").update({
+      last_attempt_at: new Date().toISOString(),
+      last_success_at: new Date().toISOString(),
+      error_category: null,
+    }).eq("id", 1);
     return next;
-  } catch {
+  } catch (error) {
+    const category = error instanceof Error ? error.name.replace(/[^a-zA-Z]/g, "").slice(0, 60) : "unknown";
+    await db.from("subscription_sync_health").update({
+      last_attempt_at: new Date().toISOString(), error_category: category,
+    }).eq("id", 1);
     return row;
   }
 }
