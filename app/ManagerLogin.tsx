@@ -64,7 +64,7 @@ export default function ManagerLogin() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100 flex items-center justify-center p-6 text-slate-900" style={{ colorScheme: "light" }}>
       <div className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-md border border-slate-200">
-        <h1 className="text-4xl font-black text-center mb-2 text-slate-900">Bottle World</h1>
+        <OwnerUnlockButton asTitle />
         <p className="text-slate-600 text-center mb-8">Manager Login</p>
         <label htmlFor="manager" className="block mb-2 font-semibold text-lg text-slate-800">Choose the Manager</label>
         <select
@@ -95,10 +95,6 @@ export default function ManagerLogin() {
           disabled={loggingIn || !selectedManager || !password}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl text-xl font-bold disabled:opacity-50"
         >{loggingIn ? "Logging in..." : "Login"}</button>
-        <div className="mt-6 border-t border-slate-200 pt-5">
-          <p className="mb-3 text-center text-sm font-semibold text-slate-600">Website owner? Access your private dashboard</p>
-          <OwnerUnlockButton />
-        </div>
       </div>
     </main>
   );
