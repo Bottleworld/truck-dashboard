@@ -11,7 +11,7 @@ function sign(value: string): string {
 
 export function verifyAdminPassword(password: string): boolean {
   if (!password || password.length > 256) return false;
-  const configured = [process.env.ADMIN_SECRET, process.env.ADMIN_LOGIN_PASSWORD, process.env.NEXT_PUBLIC_ADMIN_PASSWORD]
+  const configured = [process.env.ADMIN_SECRET, process.env.ADMIN_LOGIN_PASSWORD]
     .filter((value): value is string => Boolean(value));
   return configured.some((value) => {
     const correct = createHmac("sha256", value).update(value).digest();

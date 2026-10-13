@@ -30,7 +30,7 @@ export default function SubscriptionPaywall({ available, monthlyLink, yearlyLink
           aria-describedby="subscription-description"
           className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-9 text-slate-900"
         >
-          <OwnerUnlockButton />
+          <OwnerUnlockButton asTitle />
           <p className="text-center text-blue-700 font-black tracking-widest text-xs uppercase mb-3">
             {available ? "Subscription required" : "Subscription verification unavailable"}
           </p>

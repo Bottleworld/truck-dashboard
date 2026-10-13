@@ -122,6 +122,11 @@ export async function POST(request: Request) {
       p_plan_type: update.plan,
     });
     if (error) throw error;
+    await db.from("subscription_sync_health").update({
+      last_success_at: new Date().toISOString(),
+      error_category: null,
+      webhook_last_error: null,
+    }).eq("id", 1);
     return NextResponse.json({ received: true });
   } catch {
     await db.from("subscription_sync_health").update({ webhook_last_error: "signed_event_sync_failed" }).eq("id", 1);
