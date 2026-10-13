@@ -36,15 +36,32 @@ export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
   if (!signature) return NextResponse.json({ error: "Missing signature" }, { status: 400 });
   let services: ReturnType<typeof service>;
-  try { services = service(); } catch { return NextResponse.json({ error: "Not configured" }, { status: 500 }); }
+  try { services = service(); } catch {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (url && key) {
+      try {
+        const db = createClient(url, key);
+        await db.from("subscription_sync_health").update({ webhook_last_error: "webhook_config_missing" }).eq("id", 1);
+      } catch { /* Do not expose private settings. */ }
+    }
+    return NextResponse.json({ error: "Not configured" }, { status: 500 });
+  }
   const { stripe, db } = services;
 
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(await req.text(), signature, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch {
+    await db.from("subscription_sync_health").update({ webhook_last_error: "signature_invalid" }).eq("id", 1);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
+
+  await db.from("subscription_sync_health").update({
+    webhook_last_received_at: new Date().toISOString(),
+    webhook_last_event_type: event.type,
+    webhook_last_error: null,
+  }).eq("id", 1);
 
   try {
     let subscriptionId: string | null = null;
@@ -88,6 +105,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ received: true });
   } catch {
+    await db.from("subscription_sync_health").update({ webhook_last_error: "subscription_sync_failed" }).eq("id", 1);
     return NextResponse.json({ error: "Unable to synchronize subscription" }, { status: 500 });
   }
 }
