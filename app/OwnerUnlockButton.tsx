@@ -57,7 +57,7 @@ export default function OwnerUnlockButton({ asTitle = false }: { asTitle?: boole
         <h1 className="mb-2 text-center text-4xl font-black text-slate-900">
           <button type="button" aria-label="Bottle World"
             onClick={onTitleTap}
-            className="cursor-default select-none focus-visible:outline-2 focus-visible:outline-blue-500">
+            className="cursor-default select-none touch-manipulation focus-visible:outline-2 focus-visible:outline-blue-500">
             Bottle World
           </button>
         </h1>
