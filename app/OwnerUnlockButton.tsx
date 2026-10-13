@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
-export default function OwnerUnlockButton() {
+export default function OwnerUnlockButton({ asTitle = false }: { asTitle?: boolean }) {
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -36,11 +36,21 @@ export default function OwnerUnlockButton() {
 
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); setError(""); setPassword(""); }}
-        title="Site owner access" aria-label="Site owner access"
-        className="mx-auto mb-5 flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl bg-blue-100 text-3xl text-blue-700 hover:bg-blue-200 focus-visible:outline-4 focus-visible:outline-blue-400">
-        🔒
-      </button>
+      {asTitle ? (
+        <h1 className="mb-2 text-center text-4xl font-black text-slate-900">
+          <button type="button" aria-label="Bottle World"
+            onClick={() => { setOpen(true); setError(""); setPassword(""); }}
+            className="cursor-default select-none focus-visible:outline-2 focus-visible:outline-blue-500">
+            Bottle World
+          </button>
+        </h1>
+      ) : (
+        <button type="button" onClick={() => { setOpen(true); setError(""); setPassword(""); }}
+          title="Site owner access" aria-label="Site owner access"
+          className="mx-auto mb-5 flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl bg-blue-100 text-3xl text-blue-700 hover:bg-blue-200 focus-visible:outline-4 focus-visible:outline-blue-400">
+          🔒
+        </button>
+      )
       {open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 p-4">
           <div role="dialog" aria-modal="true" aria-labelledby="owner-title"
