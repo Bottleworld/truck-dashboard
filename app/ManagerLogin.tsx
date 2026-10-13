@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import OwnerUnlockButton from "./OwnerUnlockButton";
 
 const managers = ["VANESSA", "DOSTON", "BOBIR"];
 
@@ -94,6 +95,10 @@ export default function ManagerLogin() {
           disabled={loggingIn || !selectedManager || !password}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl text-xl font-bold disabled:opacity-50"
         >{loggingIn ? "Logging in..." : "Login"}</button>
+        <div className="mt-6 border-t border-slate-200 pt-5">
+          <p className="mb-3 text-center text-sm font-semibold text-slate-600">Website owner? Access your private dashboard</p>
+          <OwnerUnlockButton />
+        </div>
       </div>
     </main>
   );
