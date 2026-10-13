@@ -50,7 +50,7 @@ export default function OwnerUnlockButton({ asTitle = false }: { asTitle?: boole
           className="mx-auto mb-5 flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl bg-blue-100 text-3xl text-blue-700 hover:bg-blue-200 focus-visible:outline-4 focus-visible:outline-blue-400">
           🔒
         </button>
-      )
+      )}
       {open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 p-4">
           <div role="dialog" aria-modal="true" aria-labelledby="owner-title"
