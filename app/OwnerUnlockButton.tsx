@@ -1,12 +1,29 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 export default function OwnerUnlockButton({ asTitle = false }: { asTitle?: boolean }) {
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const lastTap = useRef(0);
+  const tapCount = useRef(0);
+
+  function onTitleTap() {
+    const now = Date.now();
+    // Three consecutive taps/clicks on the Bottle World heading.
+    // A gap over 1.1 seconds restarts the sequence.
+    tapCount.current = now - lastTap.current <= 1100 ? tapCount.current + 1 : 1;
+    lastTap.current = now;
+    if (tapCount.current === 3) {
+      tapCount.current = 0;
+      setOpen(true);
+      setError("");
+      setPassword("");
+    }
+  }
+
 
   async function unlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,7 +56,7 @@ export default function OwnerUnlockButton({ asTitle = false }: { asTitle?: boole
       {asTitle ? (
         <h1 className="mb-2 text-center text-4xl font-black text-slate-900">
           <button type="button" aria-label="Bottle World"
-            onClick={() => { setOpen(true); setError(""); setPassword(""); }}
+            onClick={onTitleTap}
             className="cursor-default select-none focus-visible:outline-2 focus-visible:outline-blue-500">
             Bottle World
           </button>
