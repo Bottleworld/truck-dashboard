@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import OwnerUnlockButton from "./OwnerUnlockButton";
+import Link from "next/link";
 
 const managers = ["VANESSA", "DOSTON", "BOBIR"];
 
@@ -95,6 +96,10 @@ export default function ManagerLogin() {
           disabled={loggingIn || !selectedManager || !password}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl text-xl font-bold disabled:opacity-50"
         >{loggingIn ? "Logging in..." : "Login"}</button>
+        <p className="mt-6 text-center text-xs text-slate-600">
+          © 2026 Bottle World ·{" "}
+          <Link href="/copyright" className="font-semibold text-blue-700 underline-offset-2 hover:underline">Copyright &amp; Intellectual Property Policy</Link>
+        </p>
       </div>
     </main>
   );
