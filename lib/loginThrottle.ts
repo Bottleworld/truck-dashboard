@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 /**
@@ -7,8 +6,8 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
  * Fail closed if the database or limiter is unavailable.
  */
 export async function checkLoginRateLimit(
-  request: NextRequest,
-  scope: "manager" | "admin" | "owner",
+  request: Request,
+  scope: "manager" | "admin" | "owner" | "staff" | "admin-action",
   maxAttempts: number = 6,
 ): Promise<"allowed" | "limited" | "unavailable"> {
   // Vercel supplies the trusted forwarding chain. Do not put raw IPs in the database.
