@@ -1,4 +1,5 @@
 import PaymentReturn from "./PaymentReturn";
+import Link from "next/link";
 
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ payment?: string }> }) {
   const { payment } = await searchParams;
@@ -121,6 +122,12 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
             </a>
           </div>
         </div>
+        <p style={{ marginTop: "28px", textAlign: "center", fontSize: "13px", color: "#475569" }}>
+          © 2026 Bottle World ·{" "}
+          <Link href="/copyright" style={{ color: "#1d4ed8", fontWeight: 600, textDecoration: "underline" }}>
+            Copyright &amp; Intellectual Property Policy
+          </Link>
+        </p>
       </div>
     </main>
   );
