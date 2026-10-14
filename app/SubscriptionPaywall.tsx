@@ -60,6 +60,11 @@ export default function SubscriptionPaywall({ available, monthlyLink, yearlyLink
           <p className="text-center text-xs text-slate-500 mt-6">
             Secure checkout by Stripe. Once your payment is confirmed, return here to sign in.
           </p>
+          <p className="mt-3 text-center text-xs">
+            <a href="/copyright" className="font-semibold text-blue-700 underline underline-offset-2 hover:text-blue-900">
+              Copyright &amp; Intellectual Property Policy
+            </a>
+          </p>
         </section>
       </div>
     </main>
