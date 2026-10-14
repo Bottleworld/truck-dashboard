@@ -1,4 +1,5 @@
 import OwnerUnlockButton from "./OwnerUnlockButton";
+import Link from "next/link";
 
 type Props = {
   available: boolean;
@@ -59,6 +60,12 @@ export default function SubscriptionPaywall({ available, monthlyLink, yearlyLink
           )}
           <p className="text-center text-xs text-slate-500 mt-6">
             Secure checkout by Stripe. Once your payment is confirmed, return here to sign in.
+          </p>
+          <p className="mt-4 text-center text-xs text-slate-600">
+            © 2026 Bottle World ·{" "}
+            <Link href="/copyright" className="font-semibold text-blue-700 underline-offset-2 hover:underline">
+              Copyright &amp; Intellectual Property Policy
+            </Link>
           </p>
         </section>
       </div>
