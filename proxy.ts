@@ -14,6 +14,7 @@ export async function proxy(request: NextRequest) {
   if (
     path === "/" ||
     path === "/billing" ||
+    path === "/copyright" ||
     path === "/api/stripe-webhook" ||
     path === "/api/stripe-sandbox-webhook" ||
     path === "/api/subscription-status" ||

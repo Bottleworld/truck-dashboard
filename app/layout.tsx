@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import SubscriptionAccessWatch from "./SubscriptionAccessWatch";
@@ -51,6 +52,16 @@ export default function RootLayout({
         <SubscriptionAccessWatch />
         <DevicePresenceTracker />
         {children}
+        <footer
+          className="w-full border-t border-slate-200 bg-white px-4 py-4 text-center text-xs text-slate-600"
+          style={{ colorScheme: "light" }}
+        >
+          <span>© 2026 Bottle World. All Rights Reserved.</span>
+          <span aria-hidden="true" className="mx-2">·</span>
+          <Link href="/copyright" className="font-semibold text-blue-700 underline-offset-2 hover:underline">
+            Copyright &amp; IP Policy
+          </Link>
+        </footer>
       </body>
     </html>
   );

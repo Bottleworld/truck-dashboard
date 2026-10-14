@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import OwnerUnlockButton from "./OwnerUnlockButton";
 
 const managers = ["VANESSA", "DOSTON", "BOBIR"];
@@ -95,6 +96,11 @@ export default function ManagerLogin() {
           disabled={loggingIn || !selectedManager || !password}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl text-xl font-bold disabled:opacity-50"
         >{loggingIn ? "Logging in..." : "Login"}</button>
+        <p className="mt-5 text-center text-xs">
+          <Link href="/copyright" className="font-semibold text-blue-700 underline underline-offset-2 hover:underline">
+            Copyright &amp; IP Policy
+          </Link>
+        </p>
       </div>
     </main>
   );
