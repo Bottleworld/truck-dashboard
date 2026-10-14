@@ -44,6 +44,85 @@ export default function CopyrightPolicyPage() {
           </p>
         </header>
 
+        <section
+          aria-labelledby="registered-copyright-notice"
+          className="relative mt-8 overflow-hidden rounded-3xl border-2 border-blue-900 bg-[#FFFDF7] p-6 shadow-[0_10px_30px_rgba(15,23,42,0.09)] sm:p-8"
+        >
+          <div aria-hidden="true" className="absolute right-0 top-0 h-32 w-32 rounded-bl-full bg-blue-900/[0.035]" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start">
+            <div
+              aria-hidden="true"
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-blue-200 bg-blue-50 text-blue-900"
+            >
+              <svg
+                width="38"
+                height="38"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                focusable="false"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="mb-3 inline-flex rounded-full bg-blue-900 px-4 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-white">
+                Legal Notice
+              </p>
+              <h2
+                id="registered-copyright-notice"
+                className="text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl"
+              >
+                REGISTERED COPYRIGHT NOTICE
+              </h2>
+              <p className="mt-2 font-bold text-blue-900">
+                Protected under United States Copyright Law
+              </p>
+              <p className="mt-5 leading-7 text-slate-700">
+                Bottle World’s original website content, software code, custom graphics,
+                user interface elements, and other protected proprietary materials are
+                subject to applicable intellectual property law. Unauthorized copying,
+                redistribution, resale, or commercial use of protected materials is
+                prohibited except as permitted by law or with prior written authorization.
+              </p>
+            </div>
+          </div>
+          <div className="relative mt-7 grid gap-x-8 gap-y-4 rounded-2xl border border-amber-200 bg-white/90 p-5 sm:grid-cols-2">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-amber-800">
+                Copyright Registration
+              </p>
+              <p className="mt-1 text-xl font-black tracking-wide text-slate-950">
+                CR8299202
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                U.S. Copyright Registration No. (as provided by the copyright owner)
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                Copyright Owner
+              </p>
+              <p className="mt-1 font-bold text-slate-900">Sherali Islomov</p>
+              <a
+                href="mailto:info@bottleworld.lol"
+                className="mt-1 inline-block break-all text-sm font-semibold text-blue-800 underline underline-offset-2 hover:text-blue-950"
+              >
+                info@bottleworld.lol
+              </a>
+            </div>
+          </div>
+          <p className="relative mt-5 border-t border-blue-900/15 pt-4 text-xs leading-5 text-slate-600">
+            This is a copyright owner’s legal notice, not a U.S. government-issued notice
+            or a claim of government endorsement. Nothing in this notice limits rights,
+            exceptions, or defenses provided by applicable law.
+          </p>
+        </section>
+
         <div className="space-y-8 pt-8 text-base leading-7 text-slate-700">
           <section aria-labelledby="copyright-notice">
             <h2 id="copyright-notice" className="mb-3 text-xl font-bold text-slate-900">
